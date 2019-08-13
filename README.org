@@ -4,8 +4,8 @@ Support for SAS language in org-babel
 ** Installation
    1. Download (or clone) =ob-sas.el= and put it in the 
       directory =/home/foouser/.emacs.d/lisp= 
-   2. Use SAS as another babel language
-      Add the following to your =.emacs= 
+   2. To use SAS as another babel language, add the following to your
+      =.emacs=
       #+BEGIN_SRC elisp
       (load "/home/foouser/.emacs.d/lisp/ob-sas.el")
       (require 'ob-sas)
@@ -15,20 +15,21 @@ Support for SAS language in org-babel
         '((sas . t)
           (R . t) ))
       #+END_SRC
-      Here in this example R and SAS language are loaded for org-babel; if R
+      This example show how to load R and SAS languages; if R
       is not needed it can be removed safely.
    3. Give the full path of sas executable in variable
       =org-babel-sas-command=. It can be done using =setq= in your
       =.emacs= or =set-variable= in an interactive mode. The default
-      is =/usr/local/bin/sas_u8= (unicode for unix). To set it for
+      is =/usr/local/bin/sas_u8= (SAS unicode for unix). To set it for
       windows, you can add the following line in your =.emacs=
       #+BEGIN_SRC elisp
       (setq org-babel-sas-command "C:\Program Files\SASHome\SASFoudation\bin\sas.exe")
       #+END_SRC
 ** Philosophy
    Org-Babel-sas try to propose the classical arguments of src blocks
+   but there is several difficulty due to the structure of SAS language.
 *** session
-    To use a true session, =ess= is needed and works only with unixes (SAS limitation)
+    To use a true session, =ess= is needed and works only with unixes (SAS limitation).
 *** output results (except graphics)
     1. =:output=
        work as expected 
@@ -39,3 +40,13 @@ Support for SAS language in org-babel
 *** output graphics results 
     SAS have two types of graphics: classical and ODS. Thus to use
     graphics there is two arguments =:graphisc= and =:odsgraphics=
+** Examples
+*** basic example: no session, simple output (no value, no graphics)
+#+BEGIN_SRC sas :results output :session none 
+data test1;
+    infile 'test1.csv' dlm=";" firstobs=2;
+    input CLONE $ B IN HT19 C19 HT29;
+run;
+proc print data=test1(firstobs=1 obs=3);
+run;
+#+END_SRC
