@@ -333,7 +333,7 @@ last statement in BODY, as elisp."
 				  org-babel-sas-logfile-name
 				(concat tmp-file ".log"))
 			      (concat tmp-file ".lst")
-			      (concat tmp-file ".sas")) nil nil)
+			      (concat tmp-file ".sas"))) nil nil)
        (kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
        (delete-file (concat tmp-file ".sas"))
        (if (file-readable-p sastab-tmp-file)
@@ -381,7 +381,7 @@ last statement in BODY, as elisp."
 				  org-babel-sas-logfile-name
 				(concat tmp-file ".log"))
 			      (concat tmp-file ".lst")
-			      (concat tmp-file ".sas")) nil nil)
+			      (concat tmp-file ".sas"))) nil nil)
        (kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
        (delete-file (concat tmp-file ".sas"))
        (if (file-readable-p (concat tmp-file ".lst"))
