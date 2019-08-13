@@ -309,7 +309,7 @@ last statement in BODY, as elisp."
 	 (insert body)
 	 (save-buffer 0))
        (shell-command (if org-babel-sas-windows
-			  (format "%s -SYSIN %s -NOSPLASH -ICON -PRINT %s -LOG %s"
+			  (format "%s -SYSIN %s -NOSPLASH -NOICON -PRINT %s -LOG %s"
 			      org-babel-sas-command 
 			      (concat tmp-file ".sas")
 			      (concat tmp-file ".lst")
@@ -357,8 +357,7 @@ last statement in BODY, as elisp."
 	 (insert body)
 	 (save-buffer 0))
        (shell-command (if org-babel-sas-windows
-			  ;; (format "%s -SYSIN   C:/users/pac/toto.sas  -NOSPLASH -ICON -PRINT  C:/users/pac/toto.lst -LOG C:/users/pac/toto.log" org-babel-sas-command)
-			(format "%s -SYSIN %s -NOSPLASH -ICON -PRINT %s -LOG %s"
+			(format "%s -SYSIN %s -NOSPLASH -NOICON -PRINT %s -LOG %s"
 			      org-babel-sas-command 
 			      (concat tmp-file ".sas")
 			      (concat tmp-file ".lst")

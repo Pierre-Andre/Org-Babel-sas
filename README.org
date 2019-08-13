@@ -20,14 +20,28 @@ Support for SAS language in org-babel
    3. Give the full path of sas executable in variable
       =org-babel-sas-command=. It can be done using =setq= in your
       =.emacs= or =set-variable= in an interactive mode. The default
-      is =/usr/local/bin/sas_u8= (SAS unicode for unix). To set it for
-      windows, you can add the following line in your =.emacs=
+      is =/usr/local/bin/sas_u8= (SAS unicode for unix). To set it 
+       you can add the following line in your =.emacs= 
       #+BEGIN_SRC elisp
-      (setq org-babel-sas-command "C:/Program Files/SASHome/SASFoudation/bin/sas.exe")
+      (setq org-babel-sas-command "C:\\Progra~1\\SASHome\\SASFoundation\\9.4\\sas.exe")
       #+END_SRC
+    4. ESS and session
+       
+       install ess and change the following file
+       =ess/etc/ess-sas-sh-command= with your sas executable path
+    5. optionnal
+       if you want to use ESS directly in a sas file you may find useful to define 
+       ess-sas-local-unix-keys and ess-sas-submit-command. For example, my config is
+      #+BEGIN_SRC elisp
+	('require 'ess-site)
+	(setq ess-sas-local-unix-keys t)
+	(setq ess-sas-submit-command "/usr/local/bin/sas_u8")
+     #+END_SRC
+
 ** Limitations
-   For the moment windows support is not provided as real session is not possible and
-   because the batch command in windows is not the same. 
+   For the moment windows support is limited as "real session" is not
+   possible due to SAS. Moreover the submitted program have the following limitation
+   "The maximum line length is 32767 bytes" (from SAS 9.4 Companion for Windows, Fifth Edition)
 ** Philosophy
    Org-Babel-sas try to propose the classical arguments of src blocks
    but there is several difficulty due to the structure of SAS language.
