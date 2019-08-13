@@ -2,11 +2,40 @@
 Support for SAS language in org-babel
 
 ** Installation
-add the following to your =.emacs= (I suppose that =ob-sas.el= was downloaded and pu in the 
-directory =/home/foouser/.emacs.d/lisp/=)
-#+BEGIN_SRC elisp
-(load "/home/foouser/.emacs.d/lisp/ob-sas.el")
-(require 'ob-sas)
-#+END_SRC
-
-** Documentation
+   1. Download (or clone) =ob-sas.el= and put it in the 
+      directory =/home/foouser/.emacs.d/lisp= 
+   2. Use SAS as another babel language
+      Add the following to your =.emacs= 
+      #+BEGIN_SRC elisp
+      (load "/home/foouser/.emacs.d/lisp/ob-sas.el")
+      (require 'ob-sas)
+      (require 'ob-R)
+      (org-babel-do-load-languages
+       'org-babel-load-languages
+        '((sas . t)
+          (R . t) ))
+      #+END_SRC
+      Here in this example R and SAS language are loaded for org-babel; if R
+      is not needed it can be removed safely.
+   3. Give the full path of sas executable in variable
+      =org-babel-sas-command=. It can be done using =setq= in your
+      =.emacs= or =set-variable= in an interactive mode. The default
+      is =/usr/local/bin/sas_u8= (unicode for unix). To set it for
+      windows, you can add the following line in your =.emacs=
+      #+BEGIN_SRC elisp
+      (setq org-babel-sas-command "C:\Program Files\SASHome\SASFoudation\bin\sas.exe")
+      #+END_SRC
+** Philosophy
+   Org-Babel-sas try to propose the classical arguments of src blocks
+*** session
+    To use a true session, =ess= is needed and works only with unixes (SAS limitation)
+*** output results (except graphics)
+    1. =:output=
+       work as expected 
+    2. =:value=
+       SAS is not a functionnal language and =:value= does not have sense. 
+       In order to use =:value= another argument :sastab is needed to use this
+       SAS table as a return value.
+*** output graphics results 
+    SAS have two types of graphics: classical and ODS. Thus to use
+    graphics there is two arguments =:graphisc= and =:odsgraphics=
