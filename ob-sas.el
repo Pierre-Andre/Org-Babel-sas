@@ -29,22 +29,11 @@
 ;; The file provides Org-Babel support for evaluating sas code.  It is
 ;; basically result of find-and-replace "julia" by "sas" in
 ;; ob-julia.el by G. Jay Kerns.
-;; 1) Parameter ":results output" : works if the variable org-babel-sas-command
-;; points to SAS program (see  and adjust variableorg-babel-sas-command)
-;;
-;; 2) Parameter ":results value" works as follows: SAS variables are SAS tables.
-;; In order to get the value of the chosen table it NEEDS an additionnal
-;; :sastab parameter which is the name + data set options (this string
-;; is passed to a proc export and the result is imported in org)
-;; :results value :sastab mytab(firstobs=1 obs=5)
-;; to get the 5 first lines of SAS table "mytab"
-;; 
-;; 3) Parameter ":session" works with default value using ESS (thus ESS needs to
-;; be installed and needs to work)
-
+;; see 
+;; https://github.com/Pierre-Andre/Org-Babel-sas
 ;;; Requirements:
 ;; Sas: http://sas.com
-;; ESS: http://ess.r-project.org
+;; ESS: http://ess.r-project.org (for session in unix/linux)
 
 ;;; Code:
 (require 'ob)
@@ -167,7 +156,7 @@ This function is called by `org-babel-execute-src-block'."
 	  (result
 	   (org-babel-sas-evaluate
 	    session full-body result-type result-params sastab-tmp-file)))
-      	   (message ": %s" full-body)
+ ;    	   (message ": %s" full-body)
       (if graphics-file nil result))))
 
 (defvar ess-ask-for-ess-directory) ; dynamically scoped
@@ -368,7 +357,8 @@ last statement in BODY, as elisp."
 	 (insert body)
 	 (save-buffer 0))
        (shell-command (if org-babel-sas-windows
-			  (format "%s -SYSIN %s -NOSPLASH -ICON -PRINT %s -LOG %s"
+			  ;; (format "%s -SYSIN   C:/users/pac/toto.sas  -NOSPLASH -ICON -PRINT  C:/users/pac/toto.lst -LOG C:/users/pac/toto.log" org-babel-sas-command)
+			(format "%s -SYSIN %s -NOSPLASH -ICON -PRINT %s -LOG %s"
 			      org-babel-sas-command 
 			      (concat tmp-file ".sas")
 			      (concat tmp-file ".lst")
@@ -451,7 +441,7 @@ last statement in BODY, as elisp."
       (org-babel-result-cond result-params
 	(org-babel-chomp
 	 (with-current-buffer (find-file-noselect sastab-tmp-file)
-	   (message ": %s" (buffer-string))
+;	   (message ": %s" (buffer-string))
 	   (buffer-string)
 	   )
 	 "\n")
