@@ -23,8 +23,11 @@ Support for SAS language in org-babel
       is =/usr/local/bin/sas_u8= (SAS unicode for unix). To set it for
       windows, you can add the following line in your =.emacs=
       #+BEGIN_SRC elisp
-      (setq org-babel-sas-command "C:\Program Files\SASHome\SASFoudation\bin\sas.exe")
+      (setq org-babel-sas-command "C:/Program Files/SASHome/SASFoudation/bin/sas.exe")
       #+END_SRC
+** Limitations
+   For the moment windows support is not provided as real session is not possible and
+   because the batch command in windows is not the same. 
 ** Philosophy
    Org-Babel-sas try to propose the classical arguments of src blocks
    but there is several difficulty due to the structure of SAS language.
@@ -42,12 +45,8 @@ Support for SAS language in org-babel
     graphics there is two arguments =:graphisc= and =:odsgraphics=
 ** Examples
 *** basic example: no session, simple output (no value, no graphics)
-: #+BEGIN_SRC sas :results output :session none :export code
-: data test1;
-:     infile 'test1.csv' dlm=";" firstobs=2;
-:     input CLONE $ B IN HT19 C19 HT29;
-: run;
-: proc print data=test1(firstobs=1 obs=3);
+: #+BEGIN_SRC sas :results output :session none 
+: proc print data=sashelp.air(firstobs=1 obs=3);
 : run;
 : #+END_SRC
 
