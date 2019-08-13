@@ -80,6 +80,12 @@
   :group 'org-babel
   :type 'string)
   
+;;;;;;;;;;;;;;; windows SAS or not
+(defcustom org-babel-sas-windows
+  nil
+  "SAS on windows (non nil)  or not (nil)"
+  :group 'org-babel
+  :type 'boolean)
 ;;;;;;;;;;;;;;; custom log file name (for :session "none")
 (defcustom org-babel-sas-logfile-name
   nil
@@ -313,7 +319,15 @@ last statement in BODY, as elisp."
 	 (set-visited-file-name (concat tmp-file ".sas"))
 	 (insert body)
 	 (save-buffer 0))
-       (shell-command (format "%s %s -log %s -print %s %s"
+       (shell-command (if org-babel-sas-windows
+			  (format "%s -SYSIN %s -NOSPLASH -ICON -PRINT %s -LOG %s"
+			      org-babel-sas-command 
+			      (concat tmp-file ".sas")
+			      (concat tmp-file ".lst")
+			      (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log")))
+			  (format "%s %s -log %s -print %s %s"
 			      org-babel-sas-command org-babel-sas-command-options
 			      (if org-babel-sas-logfile-name
 				  org-babel-sas-logfile-name
@@ -353,7 +367,15 @@ last statement in BODY, as elisp."
 	 (set-visited-file-name (concat tmp-file ".sas"))
 	 (insert body)
 	 (save-buffer 0))
-       (shell-command (format "%s %s -log %s -print %s %s"
+       (shell-command (if org-babel-sas-windows
+			  (format "%s -SYSIN %s -NOSPLASH -ICON -PRINT %s -LOG %s"
+			      org-babel-sas-command 
+			      (concat tmp-file ".sas")
+			      (concat tmp-file ".lst")
+			      (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log")))
+			  (format "%s %s -log %s -print %s %s"
 			      org-babel-sas-command org-babel-sas-command-options
 			      (if org-babel-sas-logfile-name
 				  org-babel-sas-logfile-name
