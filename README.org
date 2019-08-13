@@ -42,7 +42,7 @@ Support for SAS language in org-babel
     graphics there is two arguments =:graphisc= and =:odsgraphics=
 ** Examples
 *** basic example: no session, simple output (no value, no graphics)
-#+BEGIN_SRC
+#+BEGIN_VERBATIM
 #+BEGIN_SRC sas :results output :session none 
 data test1;
     infile 'test1.csv' dlm=";" firstobs=2;
@@ -51,4 +51,4 @@ run;
 proc print data=test1(firstobs=1 obs=3);
 run;
 #+END_SRC
-#+END_SRC
+#+END_VERBATIM
