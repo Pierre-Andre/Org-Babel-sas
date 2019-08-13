@@ -42,12 +42,12 @@ Support for SAS language in org-babel
     graphics there is two arguments =:graphisc= and =:odsgraphics=
 ** Examples
 *** basic example: no session, simple output (no value, no graphics)
-#+BEGIN_SRC sas :results output :session none :export code
-data test1;
-    infile 'test1.csv' dlm=";" firstobs=2;
-    input CLONE $ B IN HT19 C19 HT29;
-run;
-proc print data=test1(firstobs=1 obs=3);
-run;
-#+END_SRC
+: #+BEGIN_SRC sas :results output :session none :export code
+: data test1;
+:     infile 'test1.csv' dlm=";" firstobs=2;
+:     input CLONE $ B IN HT19 C19 HT29;
+: run;
+: proc print data=test1(firstobs=1 obs=3);
+: run;
+: #+END_SRC
 
