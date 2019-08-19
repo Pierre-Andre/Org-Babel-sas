@@ -56,7 +56,7 @@
   :group 'org-babel
   :type 'string)
 
-;;;;;;;;;;;;;;;; where is SAS (for :session "none")
+;;;;;;;;;;;;;;;; where is SAS (for :session "none" or :session 
 (defcustom org-babel-sas-command "/usr/local/bin/sas_u8"
 ;  inferior-SAS-program-name
   "Command name to use for executing sas code."
@@ -73,6 +73,13 @@
 (defcustom org-babel-sas-windows
   nil
   "SAS on windows (non nil)  or not (nil)"
+  :group 'org-babel
+  :type 'boolean)
+;;;;;;;;;;;;;;; real session or not (user library)
+(defcustom org-babel-sas-realsession
+  nil
+  "is the :session will use ESS to make a real session (non nil, unix only) 
+   or use a user library (nil)"
   :group 'org-babel
   :type 'boolean)
 ;;;;;;;;;;;;;;; custom log file name (for :session "none")

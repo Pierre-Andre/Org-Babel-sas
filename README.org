@@ -60,7 +60,7 @@ Support for SAS language in org-babel
 ** Examples
 *** basic example: no session, simple output (no value, no graphics)
 : #+BEGIN_SRC sas :results output :session none 
-: proc print data=sashelp.air(firstobs=1 obs=3);
+: proc print data=sashelp.birthwgt(firstobs=1 obs=3);
 : run;
 : #+END_SRC
 
