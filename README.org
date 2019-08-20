@@ -63,4 +63,63 @@ Support for SAS language in org-babel
 : proc print data=sashelp.birthwgt(firstobs=1 obs=3);
 : run;
 : #+END_SRC
+*** simple output but with a given :session
+using =(setq org-babel-sas-realsession nil)= and a given user library
+directory under windows, a sas table can be created in one chunk and
+used in another (using the same session). One drawback is that you
+need to deleted all created files if not needed (see next example)
+: #+BEGIN_SRC sas :results none :session "c:/users/pac/tmp"
+: data blob;
+: set sashelp.birthwgt(firstobs=1 obs=3);
+: run;
+: #+END_SRC
+: 
+: #+BEGIN_SRC sas :results output :session "c:/users/pac/tmp" 
+: proc print data=blob;
+: run;
+: #+END_SRC
+*** simple output with :session 
+Org babel can take care of the directory name for the session (this directory session
+will be deleted when closing emacs)
+: #+BEGIN_SRC sas :session  :results none
+: data blob;
+: set sashelp.birthwgt(firstobs=1 obs=3);
+: run;
+: #+END_SRC
+: 
+: #+BEGIN_SRC sas :results output :session 
+: proc print data=blob;
+: run;
+: #+END_SRC
+*** value output with :session
+You can use a :session to create a SAS table (without any results)
+printed using =:results none=. And on another chunk you can reuse the
+SAS table, modify it and see the results in a value fashion. 
+
+To use =:results value= you must add a =:sastab= argument which is
+the name of the SAS table you wish to see in the result value and you
+can use options compatible with the =data= argument of =proc
+export=. In this example I want not the whole table but the three
+first line of table blib in the result value
+: #+BEGIN_SRC sas   :results none :session
+: data blob;
+: set sashelp.birthwgt;
+: run;
+: #+END_SRC
+: 
+: 
+: #+BEGIN_SRC sas :results value :session :sastab blib(firstobs=1 obs=3)
+: data blib;
+: set blob;
+: drop Race; 
+: run;
+: #+END_SRC
+
+#+RESULTS:
+| LowBirthWgt | Married | AgeGroup | Race   | Drinking | Death | Smoking | SomeCollege |
+| No          | No      |        3 | Asian  | No       | No    | No      | Yes         |
+| No          | No      |        2 | White  | No       | No    | No      | No          |
+| Yes         | Yes     |        2 | Native | No       | Yes   | No      | No          |
+
+
 

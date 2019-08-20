@@ -8,6 +8,7 @@ run;
 #+BEGIN_SRC sas :results value :session :sastab blib(firstobs=1 obs=3)
 data blib;
 set blob;
+drop Race;
 run;
 #+END_SRC
 
