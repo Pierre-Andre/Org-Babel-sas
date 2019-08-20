@@ -1,0 +1,20 @@
+#+BEGIN_SRC sas :results none :session "c:/users/pac/tmp"
+data blob;
+set sashelp.birthwgt(firstobs=1 obs=3);
+run;
+#+END_SRC
+
+#+BEGIN_SRC sas :results output :session "c:/users/pac/tmp" 
+proc print data=blob;
+run;
+#+END_SRC
+
+#+RESULTS:
+: Le Système SAS                                                                                                                   1
+: 
+:           Low                   Age                                                Some
+: Obs.    BirthWgt    Married    Group     Race     Drinking    Death    Smoking    College
+: 
+:   1       No          No         3      Asian        No        No        No         Yes  
+:   2       No          No         2      White        No        No        No         No   
+:   3       Yes         Yes        2      Native       No        Yes       No         No   

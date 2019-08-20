@@ -1,0 +1,18 @@
+#+BEGIN_SRC sas   :results none :session
+data blob;
+set sashelp.birthwgt;
+run;
+#+END_SRC
+
+
+#+BEGIN_SRC sas :results value :session :sastab blib(firstobs=1 obs=3)
+data blib;
+set blob;
+run;
+#+END_SRC
+
+#+RESULTS:
+| LowBirthWgt | Married | AgeGroup | Race   | Drinking | Death | Smoking | SomeCollege |
+| No          | No      |        3 | Asian  | No       | No    | No      | Yes         |
+| No          | No      |        2 | White  | No       | No    | No      | No          |
+| Yes         | Yes     |        2 | Native | No       | Yes   | No      | No          |
