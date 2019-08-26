@@ -1,6 +1,6 @@
 ;;; ob-sas.el --- org-babel functions for sas code evaluation
 
-;; Copyright (C) 2017 P.A. Cornillon
+;; Copyright (C) 2019 P.A. Cornillon
 ;; Author: P.A. Cornillon
 ;;      G. Jay Kerns
 ;;      Eric Schulte
@@ -27,13 +27,14 @@
 ;;; Commentary:
 
 ;; The file provides Org-Babel support for evaluating sas code.  It is
-;; basically result of find-and-replace "julia" by "sas" in
+;; basically the adaptation of 
+;; ob-R.el by E. Schulte which results of find-and-replace "julia" by "sas" in
 ;; ob-julia.el by G. Jay Kerns.
 ;; see 
 ;; https://github.com/Pierre-Andre/Org-Babel-sas
 ;;; Requirements:
 ;; Sas: http://sas.com
-;; ESS: http://ess.r-project.org (for session in unix/linux)
+;; ESS: http://ess.r-project.org (only for session in unix/linux)
 
 ;;; Code:
 (require 'ob)
@@ -45,6 +46,7 @@
 (declare-function ess-make-buffer-current "ext:ess-inf" ())
 (declare-function ess-eval-buffer "ext:ess-inf" (vis))
 (declare-function org-number-sequence "org-compat" (from &optional to inc))
+
 ;;;;;;;;;;;;;;;; could be useful to increase or decrease timeout ....
 (defcustom org-babel-sas-timeout 1000
   "Timeout (in sec) used when waiting output from a submitted src block (to sas) with argument :session."
@@ -68,7 +70,7 @@
   "Options for sas batch"
   :group 'org-babel
   :type 'string)
-  
+
 ;;;;;;;;;;;;;;; windows SAS or not
 (defcustom org-babel-sas-windows
   nil
@@ -121,6 +123,10 @@
 ;; session using ESS is the way to go, so make that the default
 (defvar org-babel-default-header-args:sas '((:results . "output") (:session . nil)))
 
+;; from unix to windows path (ie change / to \)
+(defun org-babel-sas-path-windows (s)
+  "replace / by \\"
+   (replace-regexp-in-string "/" "\\\\" s))
 ;; trim white space and garbage
 (defun org-babel-sas-trim-white (s)
   "replace S by empty string if S is whitespace only"
@@ -142,7 +148,7 @@
   (if (string-match "\\`\n" s)
       (replace-match "" t t s)
     s))
-;; let's go: main function
+
 (defun org-babel-execute:sas (body params)
   "Execute a block of sas code.
 This function is called by `org-babel-execute-src-block'."
@@ -158,8 +164,9 @@ This function is called by `org-babel-execute-src-block'."
 			  nil))
 	  (sastab-tmp-file (if (string-equal result-type "value")
 			    (org-babel-temp-file "SASexport-")
-			  nil))
+			    nil))
 	  (full-body (org-babel-expand-body:sas body params graphics-file graphics-type sastab-value sastab-tmp-file))
+;	  (blob (message "session %s" session))
 	  (result
 	   (org-babel-sas-evaluate
 	    session full-body result-type result-params sastab-tmp-file)))
@@ -169,8 +176,11 @@ This function is called by `org-babel-execute-src-block'."
 (defvar ess-ask-for-ess-directory) ; dynamically scoped
 
 (defun org-babel-sas-initiate-session (session params)
-  "If there is not a current sas process then create one."
-  (unless (string= session "none")
+  "If there is not a current sas process then create one (if realsession) or give as a string the library directory (if not realsession)"
+  (if (or (not org-babel-sas-realsession) (string= session "none"))
+      (if (string= session "none") "none"
+        (if (not session)
+	    org-babel-temporary-directory session))
     (let ((session (or session "*SAS*"))
 	  (ess-ask-for-ess-directory
 	   (and (and (boundp 'ess-ask-for-ess-directory) ess-ask-for-ess-directory)
@@ -191,53 +201,12 @@ This function is called by `org-babel-execute-src-block'."
 		 session
 	       (buffer-name)))) 1))
 	  (current-buffer))))))
-;;;;;;;;;;;;;;;;;;; two functions not used (at the moment ?)
-(defun org-babel-sas-associate-session (session)
-  "Associate sas code buffer with a sas session.
-Make SESSION be the inferior ESS process associated with the
-current code buffer."
-  (setq ess-local-process-name
-	(process-name (get-buffer-process session)))
-  (ess-make-buffer-current))
-
-(defun org-babel-load-session:sas (session body params)
-  "Load BODY into SESSION."
-  (save-window-excursion
-    (let ((buffer (org-babel-prep-session:sas session params)))
-      (with-current-buffer buffer
-        (goto-char (process-mark (get-buffer-process (current-buffer))))
-        (insert (org-babel-chomp body)))
-      buffer)))
-;;;;;;;;;;;;;;;;;;; end of not used 
 
 (defun org-babel-sas-graphical-output-file (params)
   "Name of file to which sas should send graphical output."
   (and (or (member "graphics" (cdr (assq :result-params params)))
 	   (member "odsgraphics" (cdr (assq :result-params params))))
        (cdr (assq :file params))))
-
-(defun org-babel-expand-body:sas (body params &optional graphics-file graphics-type sastab-value sastab-tmp-file)
-  "Expand BODY according to PARAMS, return the expanded body."
-  (let ((graphics-file
-	 (or graphics-file
-	     (org-babel-sas-graphical-output-file params)))
-	(graphics-type
-	 (or graphics-type
-	     (or (member "odsgraphics" (cdr (assq :result-params params)))
-		 (member "graphics" (cdr (assq :result-params params)))))))
-    (concat org-babel-sas-print-options
-     (if graphics-file
-	   (org-babel-sas-construct-graphics-device-call
-	    graphics-file graphics-type params)
-       "")
-     body
-     (if graphics-file
-		    (if (string-equal (car graphics-type) "odsgraphics")
-			"quit;\nods graphics off;\n"
-		      "quit;\n"))
-     (if sastab-value
-	   (org-babel-sas-construct-export-call sastab-value sastab-tmp-file)
-       ""))))
 
 (defvar org-babel-sas-graphics-devices
   '((:bmp "bmp")
@@ -261,6 +230,7 @@ Each member of this list is a list with three members:
 ;; goptions  device=svg gsfname=sortie
 ;; or this line with ODS graphics :odsgraphics
 ;; ods graphics on /  imagefmt=png imagename="barplot" border=off width=10cm;
+
 (defun org-babel-sas-construct-graphics-device-call (out-file graphics-type params)
   "Construct the string for choosing device and saving graphic file"
   (let* ((allowed-args '(:hsize :vsize :xpixels :ypixels :border :width :height))
@@ -285,25 +255,51 @@ Each member of this list is a list with three members:
 	    out-file device args
 	    (if extra-args " " "") (or extra-args "")))))
 
+(defun org-babel-expand-body:sas (body params &optional graphics-file graphics-type sastab-value sastab-tmp-file)
+  "Expand BODY according to PARAMS, return the expanded body."
+  (let ((graphics-file
+	 (or graphics-file
+	     (org-babel-sas-graphical-output-file params)))
+	(graphics-type
+	 (or graphics-type
+	     (or (member "odsgraphics" (cdr (assq :result-params params)))
+		 (member "graphics" (cdr (assq :result-params params)))))))
+    (concat org-babel-sas-print-options
+     (if graphics-file
+	   (org-babel-sas-construct-graphics-device-call
+	    graphics-file graphics-type params)
+       "")
+     body
+     (if graphics-file
+		    (if (string-equal (car graphics-type) "odsgraphics")
+			"quit;\nods graphics off;\n"
+		      "quit;\n"))
+     (if sastab-value
+	 (org-babel-sas-construct-export-call sastab-value
+					      (if org-babel-sas-windows (org-babel-sas-path-windows sastab-tmp-file) sastab-tmp-file))
+       ""))))
+
 (defun org-babel-sas-construct-export-call (sastab-value sastab-tmp-file)
   (let ((tmp-file (org-babel-temp-file "SAS-")))
     (concat "proc export data=" sastab-value "\n outfile='" sastab-tmp-file 
      "'\n dbms=tab replace;\nrun;")))
+
 (defun org-babel-sas-evaluate
   (session body result-type result-params sastab-tmp-file)
   "Evaluate sas code in BODY."
-  (if session
-      (org-babel-sas-evaluate-session
-       session body result-type result-params sastab-tmp-file)
-    (org-babel-sas-evaluate-external-process
-     body result-type result-params sastab-tmp-file)))
+  (if (string-or-null-p session)
+      (org-babel-sas-evaluate-external-process
+       body result-type result-params sastab-tmp-file session)
+    (org-babel-sas-evaluate-session
+     session body result-type result-params sastab-tmp-file)))
 
 (defun org-babel-sas-evaluate-external-process
-  (body result-type result-params sastab-tmp-file)
+  (body result-type result-params sastab-tmp-file session)
   "Evaluate BODY in external sas process.
 If RESULT-TYPE equals 'output then return standard output as a
 string.  If RESULT-TYPE equals 'value then return the value of the
 last statement in BODY, as elisp."
+  (message "evaluation la session est %s" session)
   (cl-case result-type
     (value
      ;; org-babel-eval does pass external argument...
@@ -315,23 +311,72 @@ last statement in BODY, as elisp."
 	 (set-visited-file-name (concat tmp-file ".sas"))
 	 (insert body)
 	 (save-buffer 0))
-       (shell-command (if org-babel-sas-windows
-			  (format "%s -SYSIN %s -NOSPLASH -NOICON -PRINT %s -LOG %s"
+       (message "la commande SAS est %s" (if org-babel-sas-windows
+			  (if (string= session "none")
+			      (format "%s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
 			      org-babel-sas-command 
 			      (concat tmp-file ".sas")
 			      (concat tmp-file ".lst")
 			      (if org-babel-sas-logfile-name
 				  org-babel-sas-logfile-name
 				(concat tmp-file ".log")))
-			  (format "%s %s -log %s -print %s %s"
+			    (format "%s -USER %s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
+			      org-babel-sas-command session
+			      (concat tmp-file ".sas")
+			      (concat tmp-file ".lst")
+			      (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log"))))
+			(if (string= session "none")
+			    (format "%s %s -log %s -print %s %s"
 			      org-babel-sas-command org-babel-sas-command-options
 			      (if org-babel-sas-logfile-name
 				  org-babel-sas-logfile-name
 				(concat tmp-file ".log"))
 			      (concat tmp-file ".lst")
-			      (concat tmp-file ".sas"))) nil nil)
+			      (concat tmp-file ".sas"))
+			  (format "%s -user %s %s -log %s -print %s %s"
+			      org-babel-sas-command session org-babel-sas-command-options
+			      (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log"))
+			      (concat tmp-file ".lst")
+			      (concat tmp-file ".sas")))))
+       (shell-command (if org-babel-sas-windows
+			  (if (string= session "none")
+			      (format "%s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
+			      org-babel-sas-command 
+			      (concat tmp-file ".sas")
+			      (concat tmp-file ".lst")
+			      (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log")))
+			    (format "%s -USER %s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
+			      org-babel-sas-command session
+			      (concat tmp-file ".sas")
+			      (concat tmp-file ".lst")
+			      (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log"))))
+			(if (string= session "none")
+			    (format "%s %s -log %s -print %s %s"
+			      org-babel-sas-command org-babel-sas-command-options
+			      (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log"))
+			      (concat tmp-file ".lst")
+			      (concat tmp-file ".sas"))
+			  (format "%s -user %s %s -log %s -print %s %s"
+			      org-babel-sas-command session org-babel-sas-command-options
+			      (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log"))
+			      (concat tmp-file ".lst")
+			      (concat tmp-file ".sas")))) nil nil)
        (kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
        (delete-file (concat tmp-file ".sas"))
+       (message "le programme est %s" body)
+       (message "le fichier export est %s" sastab-tmp-file)
        (if (file-readable-p sastab-tmp-file)
 	   (org-babel-result-cond result-params
 	     (org-babel-chomp
@@ -364,23 +409,39 @@ last statement in BODY, as elisp."
 	 (insert body)
 	 (save-buffer 0))
        (shell-command (if org-babel-sas-windows
-			(format "%s -SYSIN %s -NOSPLASH -NOICON -PRINT %s -LOG %s"
+			  (if (string= session "none")
+			      (format "%s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
 			      org-babel-sas-command 
 			      (concat tmp-file ".sas")
 			      (concat tmp-file ".lst")
 			      (if org-babel-sas-logfile-name
 				  org-babel-sas-logfile-name
 				(concat tmp-file ".log")))
+			      (format "%s -USER %s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
+			      org-babel-sas-command session
+			      (concat tmp-file ".sas")
+			      (concat tmp-file ".lst")
+			      (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log"))))
+			(if (string= session "none")
 			  (format "%s %s -log %s -print %s %s"
 			      org-babel-sas-command org-babel-sas-command-options
 			      (if org-babel-sas-logfile-name
 				  org-babel-sas-logfile-name
 				(concat tmp-file ".log"))
 			      (concat tmp-file ".lst")
-			      (concat tmp-file ".sas"))) nil nil)
+			      (concat tmp-file ".sas"))
+			  (format "%s -user %s %s -log %s -print %s %s"
+			      org-babel-sas-command session org-babel-sas-command-options
+			      (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log"))
+			      (concat tmp-file ".lst")
+			      (concat tmp-file ".sas")))) nil nil)
        (kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
        (delete-file (concat tmp-file ".sas"))
-       (if (file-readable-p (concat tmp-file ".lst"))
+	 (if (file-readable-p (concat tmp-file ".lst"))
 	   (progn
 	     (with-current-buffer
 		 (switch-to-buffer (find-file-noselect (concat tmp-file ".lst")))

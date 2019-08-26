@@ -14,7 +14,7 @@ C-u C-c C-v t
 
 tangle whole buffer (which gives several files)
 C-c C-v t 
-* OB SAS
+* ob-sas.el
 ** header
  #+BEGIN_SRC elisp :tangle ob-sas.el
  ;;; ob-sas.el --- org-babel functions for sas code evaluation
