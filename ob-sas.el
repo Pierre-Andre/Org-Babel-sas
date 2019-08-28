@@ -166,21 +166,19 @@ This function is called by `org-babel-execute-src-block'."
 			    (org-babel-temp-file "SASexport-")
 			    nil))
 	  (full-body (org-babel-expand-body:sas body params graphics-file graphics-type sastab-value sastab-tmp-file))
-;	  (blob (message "session %s" session))
 	  (result
 	   (org-babel-sas-evaluate
 	    session full-body result-type result-params sastab-tmp-file)))
- ;    	   (message ": %s" full-body)
       (if graphics-file nil result))))
 
 (defvar ess-ask-for-ess-directory) ; dynamically scoped
 
 (defun org-babel-sas-initiate-session (session params)
   "If there is not a current sas process then create one (if realsession) or give as a string the library directory (if not realsession)"
-  (if (or (not org-babel-sas-realsession) (string= session "none"))
-      (if (string= session "none") "none"
-        (if (not session)
-	    org-babel-temporary-directory session))
+ (if (string= session "none") "none"
+    (if (null org-babel-sas-realsession)
+      (if (stringp session) session
+	org-babel-temporary-directory)
     (let ((session (or session "*SAS*"))
 	  (ess-ask-for-ess-directory
 	   (and (and (boundp 'ess-ask-for-ess-directory) ess-ask-for-ess-directory)
@@ -200,7 +198,7 @@ This function is called by `org-babel-execute-src-block'."
 	     (if (stringp session)
 		 session
 	       (buffer-name)))) 1))
-	  (current-buffer))))))
+	  (current-buffer)))))))
 
 (defun org-babel-sas-graphical-output-file (params)
   "Name of file to which sas should send graphical output."
@@ -287,7 +285,7 @@ Each member of this list is a list with three members:
 (defun org-babel-sas-evaluate
   (session body result-type result-params sastab-tmp-file)
   "Evaluate sas code in BODY."
-  (if (string-or-null-p session)
+  (if (and (string-or-null-p session) (not (string= session "*SAS*")))
       (org-babel-sas-evaluate-external-process
        body result-type result-params sastab-tmp-file session)
     (org-babel-sas-evaluate-session
@@ -299,7 +297,6 @@ Each member of this list is a list with three members:
 If RESULT-TYPE equals 'output then return standard output as a
 string.  If RESULT-TYPE equals 'value then return the value of the
 last statement in BODY, as elisp."
-  (message "evaluation la session est %s" session)
   (cl-case result-type
     (value
      ;; org-babel-eval does pass external argument...
@@ -311,37 +308,6 @@ last statement in BODY, as elisp."
 	 (set-visited-file-name (concat tmp-file ".sas"))
 	 (insert body)
 	 (save-buffer 0))
-       (message "la commande SAS est %s" (if org-babel-sas-windows
-			  (if (string= session "none")
-			      (format "%s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
-			      org-babel-sas-command 
-			      (concat tmp-file ".sas")
-			      (concat tmp-file ".lst")
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log")))
-			    (format "%s -USER %s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
-			      org-babel-sas-command session
-			      (concat tmp-file ".sas")
-			      (concat tmp-file ".lst")
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log"))))
-			(if (string= session "none")
-			    (format "%s %s -log %s -print %s %s"
-			      org-babel-sas-command org-babel-sas-command-options
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log"))
-			      (concat tmp-file ".lst")
-			      (concat tmp-file ".sas"))
-			  (format "%s -user %s %s -log %s -print %s %s"
-			      org-babel-sas-command session org-babel-sas-command-options
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log"))
-			      (concat tmp-file ".lst")
-			      (concat tmp-file ".sas")))))
        (shell-command (if org-babel-sas-windows
 			  (if (string= session "none")
 			      (format "%s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
@@ -375,8 +341,6 @@ last statement in BODY, as elisp."
 			      (concat tmp-file ".sas")))) nil nil)
        (kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
        (delete-file (concat tmp-file ".sas"))
-       (message "le programme est %s" body)
-       (message "le fichier export est %s" sastab-tmp-file)
        (if (file-readable-p sastab-tmp-file)
 	   (org-babel-result-cond result-params
 	     (org-babel-chomp
@@ -439,6 +403,9 @@ last statement in BODY, as elisp."
 				(concat tmp-file ".log"))
 			      (concat tmp-file ".lst")
 			      (concat tmp-file ".sas")))) nil nil)
+        (message "SAS log file is: %s" (if org-babel-sas-logfile-name
+				  org-babel-sas-logfile-name
+				(concat tmp-file ".log")))
        (kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
        (delete-file (concat tmp-file ".sas"))
 	 (if (file-readable-p (concat tmp-file ".lst"))
@@ -508,7 +475,6 @@ last statement in BODY, as elisp."
       (org-babel-result-cond result-params
 	(org-babel-chomp
 	 (with-current-buffer (find-file-noselect sastab-tmp-file)
-;	   (message ": %s" (buffer-string))
 	   (buffer-string)
 	   )
 	 "\n")
