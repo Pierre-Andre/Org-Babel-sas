@@ -44,9 +44,19 @@ Support for SAS language in org-babel
    "The maximum line length is 32767 bytes" (from SAS 9.4 Companion for Windows, Fifth Edition)
 ** Philosophy
    Org-Babel-sas try to propose the classical arguments of src blocks
-   but there is several difficulty due to the structure of SAS language.
+   but there are several difficulties due to the structure of SAS language.
 *** session
-    To use a true session, =ess= is needed and works only with unixes (SAS limitation).
+    To use a true session, =ess= is needed and works only with unixes
+    (SAS limitation). This can be done by setting
+    =org-babel-sas-realsession= to non nil (nil is the default
+    value). For instance the following =(setq
+    org-babel-sas-realsession t)= can be included in the =.emacs=
+
+    The true session ensure that all is saved in the session (useful
+    for using macro-variables or macro-program from one src block to another)
+
+    The non true session (the default) ensures only that the SAS tables can be used from
+    one src block to another (by using a user library).
 *** output results (except graphics)
     1. =:output=
        work as expected 
@@ -99,8 +109,8 @@ SAS table, modify it and see the results in a value fashion.
 To use =:results value= you must add a =:sastab= argument which is
 the name of the SAS table you wish to see in the result value and you
 can use options compatible with the =data= argument of =proc
-export=. In this example I want not the whole table but the three
-first line of table blib in the result value
+export=. In this example I do not want the whole table but the three
+first lines of table blib in the result value
 : #+BEGIN_SRC sas   :results none :session
 : data blob;
 : set sashelp.birthwgt;
@@ -123,3 +133,37 @@ first line of table blib in the result value
 
 
 
+*** graphics
+**** Classical graphics
+     In order to get the graphics, you need to specify =graphics= in
+     =:session= and give file name in =:file=. As in =ob-R.el=
+     filename will specify format
+: #+begin_src sas :results output graphics :file "Z:\\histogram.png" :session :exports both :comments org
+: proc univariate data=sashelp.cars;
+: histogram weight;
+: run;
+: #+end_src
+**** ODS graphics
+     As ODS graphics do not have identical export commands to use ODS
+     graphics you must use =odsgraphics= instead of =graphics=
+: #+begin_src sas :results odsgraphics :file "plotreg" :session :exports both :comments org
+: proc reg data=sashelp.cars plot(only)=(RESIDUALBYPREDICTED FITPLOT);
+: model MPG_City=Weight; 
+: run;
+: #+end_src
+*** log
+    Log files are given in buffer. In order to debug programs =log= can be used as follows: 
+: #+BEGIN_SRC sas   :results none :session
+: data blob;
+: set sashelp.birthwgt;
+: run;
+: #+END_SRC
+: 
+: 
+: #+BEGIN_SRC sas :results log :session :sastab blib(firstobs=1 obs=3)
+: data blib;
+: set blob;
+: drop Race; 
+: run;
+: #+END_SRC
+     This cannot be used in "real session".

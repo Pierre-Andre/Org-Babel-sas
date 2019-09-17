@@ -1,11 +1,11 @@
-#+BEGIN_SRC sas :results output
+#+BEGIN_SRC sas :results value
 proc print data=sashelp.cars(firstobs=1 obs=5);
 run;
 #+END_SRC
 
 #+RESULTS:
 #+begin_example
-Le SystÃ¨me SAS
+Le Système SAS
 
                                        Drive                   Engine                                 MPG_
 Obs. Make  Model          Type  Origin Train     MSRP  Invoice  Size  Cylinders Horsepower MPG_City Highway Weight Wheelbase Length
@@ -18,12 +18,12 @@ Obs. Make  Model          Type  Origin Train     MSRP  Invoice  Size  Cylinders 
 #+end_example
 
 
-#+begin_src sas :results output odsgraphics :file "plotreg" :session :exports both :comments org
+#+begin_src sas :results odsgraphics :file "plotreg" :session :exports both :comments org
 proc reg data=sashelp.cars plot(only)=(RESIDUALBYPREDICTED FITPLOT);
 model MPG_City=Weight; 
 run;
 #+end_src
 
 #+RESULTS:
-[[file:plotregue]]
+[[file:plotreg]]
 

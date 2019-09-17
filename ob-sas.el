@@ -115,7 +115,7 @@
     (results             . ((file list vector table scalar verbatim)
 			    (raw org html latex code pp wrap)
 			    (replace silent append prepend)
-			    (output value graphics odsgraphics))))
+			    (output value graphics odsgraphics log))))
   "sas-specific header arguments.")
 
 (add-to-list 'org-babel-tangle-lang-exts '("sas" . "sas"))
@@ -129,22 +129,22 @@
    (replace-regexp-in-string "/" "\\\\" s))
 ;; trim white space and garbage
 (defun org-babel-sas-trim-white (s)
-  "replace S by empty string if S is whitespace only"
+  "replace S by empty string if S is whitespace/tab/CR only"
   (if (string-match "\\`[ \t\n\r]+\\'" s)
       (replace-match "" t t s)
     s))
 (defun org-babel-sas-trim-doubleline (s)
-  "replace S by empty string if S is whitespace only"
+  "replace elo eol by eol"
   (if (string-match "\n\n" s)
       (replace-match "\n" t t s)
     s))
 (defun org-babel-sas-trim-end (s)
-  "replace S by empty string if S is whitespace only"
+  "replace eol + white by eol"
   (if (string-match "\n[ ]+\\'" s)
       (replace-match "\n" t t s)
     s))
 (defun org-babel-sas-trim-begin (s)
-  "replace S by empty string if S is whitespace only"
+  "replace eol by empty string"
   (if (string-match "\\`\n" s)
       (replace-match "" t t s)
     s))
@@ -292,145 +292,206 @@ Each member of this list is a list with three members:
      session body result-type result-params sastab-tmp-file)))
 
 (defun org-babel-sas-evaluate-external-process
-  (body result-type result-params sastab-tmp-file session)
-  "Evaluate BODY in external sas process.
-If RESULT-TYPE equals 'output then return standard output as a
-string.  If RESULT-TYPE equals 'value then return the value of the
-last statement in BODY, as elisp."
-  (cl-case result-type
-    (value
-     ;; org-babel-eval does pass external argument...
-     (let ((tmp-file (org-babel-temp-file "SAS-")))
-	   ;;((tmp-file "sas-file4677846547.sas")
-       ;;(directory-sas ""))
-       (with-current-buffer
-	   (switch-to-buffer (get-buffer-create (concat tmp-file ".sas")))
-	 (set-visited-file-name (concat tmp-file ".sas"))
-	 (insert body)
-	 (save-buffer 0))
-       (shell-command (if org-babel-sas-windows
-			  (if (string= session "none")
-			      (format "%s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
-			      org-babel-sas-command 
-			      (concat tmp-file ".sas")
-			      (concat tmp-file ".lst")
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log")))
-			    (format "%s -USER %s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
-			      org-babel-sas-command session
-			      (concat tmp-file ".sas")
-			      (concat tmp-file ".lst")
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log"))))
-			(if (string= session "none")
-			    (format "%s %s -log %s -print %s %s"
-			      org-babel-sas-command org-babel-sas-command-options
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log"))
-			      (concat tmp-file ".lst")
-			      (concat tmp-file ".sas"))
-			  (format "%s -user %s %s -log %s -print %s %s"
-			      org-babel-sas-command session org-babel-sas-command-options
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log"))
-			      (concat tmp-file ".lst")
-			      (concat tmp-file ".sas")))) nil nil)
-       (kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
-       (delete-file (concat tmp-file ".sas"))
-       (if (file-readable-p sastab-tmp-file)
-	   (org-babel-result-cond result-params
-	     (org-babel-chomp
-	      (with-current-buffer (find-file-noselect sastab-tmp-file)
-		(buffer-string))
-	      "\n")
-	     (org-babel-import-elisp-from-file sastab-tmp-file '(16)))
-	 (progn
-	   (if (get-buffer (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log")))
-	       (with-current-buffer (get-buffer  (if org-babel-sas-logfile-name
-						     org-babel-sas-logfile-name
-						   (concat tmp-file ".log")))
-		 (revert-buffer :ignore-auto :noconfirm :preserve-modes))
-	     (save-window-excursion (pop-to-buffer-same-window (find-file-noselect (if org-babel-sas-logfile-name
-						     org-babel-sas-logfile-name
-						   (concat tmp-file ".log"))))))
-	   (format "Errors, please see [[file://%s][log file]] (in Buffer list)" (if org-babel-sas-logfile-name
-						     org-babel-sas-logfile-name
-						   (concat tmp-file ".log")))))))     
-    (output
-     ;; org-babel-eval does pass external argument...
-     (let ((tmp-file (org-babel-temp-file "SAS-")))
-	   ;;((tmp-file "sas-file4677846547.sas")
-       ;;(directory-sas ""))
-       (with-current-buffer
-	   (switch-to-buffer (get-buffer-create (concat tmp-file ".sas")))
-	 (set-visited-file-name (concat tmp-file ".sas"))
-	 (insert body)
-	 (save-buffer 0))
-       (shell-command (if org-babel-sas-windows
-			  (if (string= session "none")
-			      (format "%s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
-			      org-babel-sas-command 
-			      (concat tmp-file ".sas")
-			      (concat tmp-file ".lst")
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log")))
-			      (format "%s -USER %s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
-			      org-babel-sas-command session
-			      (concat tmp-file ".sas")
-			      (concat tmp-file ".lst")
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log"))))
-			(if (string= session "none")
-			  (format "%s %s -log %s -print %s %s"
-			      org-babel-sas-command org-babel-sas-command-options
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log"))
-			      (concat tmp-file ".lst")
-			      (concat tmp-file ".sas"))
-			  (format "%s -user %s %s -log %s -print %s %s"
-			      org-babel-sas-command session org-babel-sas-command-options
-			      (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log"))
-			      (concat tmp-file ".lst")
-			      (concat tmp-file ".sas")))) nil nil)
-        (message "SAS log file is: %s" (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log")))
-       (kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
-       (delete-file (concat tmp-file ".sas"))
-	 (if (file-readable-p (concat tmp-file ".lst"))
-	   (progn
-	     (with-current-buffer
-		 (switch-to-buffer (find-file-noselect (concat tmp-file ".lst")))
-	       (beginning-of-buffer)
-	       (setq body (buffer-string)))
-	      (kill-buffer (file-name-nondirectory (concat tmp-file ".lst")))
-	     (delete-file  (concat tmp-file ".lst"))
-	     body)
-	 (progn
-	   (if (get-buffer (if org-babel-sas-logfile-name
-				  org-babel-sas-logfile-name
-				(concat tmp-file ".log")))
-	       (with-current-buffer (get-buffer  (if org-babel-sas-logfile-name
-						     org-babel-sas-logfile-name
-						   (concat tmp-file ".log")))
-		 (revert-buffer :ignore-auto :noconfirm :preserve-modes))
-	     (save-window-excursion (pop-to-buffer-same-window (find-file-noselect (if org-babel-sas-logfile-name
-						     org-babel-sas-logfile-name
-						   (concat tmp-file ".log"))))))
-	   (format "Errors, please see [[file://%s][log file]] (in Buffer list)" (if org-babel-sas-logfile-name
-						     org-babel-sas-logfile-name
-						   (concat tmp-file ".log")))))))))
+   (body result-type result-params sastab-tmp-file session)
+   "Evaluate BODY in external sas process.
+ If RESULT-TYPE equals 'output then return standard output as a
+ string.  If RESULT-TYPE equals 'value then return the value of the
+ :sastab SAS table, as elisp."
+   (if (car (member "log" result-params))
+      ;; log
+      (let ((tmp-file (org-babel-temp-file "SAS-")))
+	    ;;((tmp-file "sas-file4677846547.sas")
+	;;(directory-sas ""))
+	(with-current-buffer
+	    (switch-to-buffer (get-buffer-create (concat tmp-file ".sas")))
+	  (set-visited-file-name (concat tmp-file ".sas"))
+	  (insert body)
+	  (save-buffer 0))
+	(shell-command (if org-babel-sas-windows
+			   (if (string= session "none")
+			       (format "%s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
+			       org-babel-sas-command 
+			       (concat tmp-file ".sas")
+			       (concat tmp-file ".lst")
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log")))
+			       (format "%s -USER %s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
+			       org-babel-sas-command session
+			       (concat tmp-file ".sas")
+			       (concat tmp-file ".lst")
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log"))))
+			 (if (string= session "none")
+			   (format "%s %s -log %s -print %s %s"
+			       org-babel-sas-command org-babel-sas-command-options
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log"))
+			       (concat tmp-file ".lst")
+			       (concat tmp-file ".sas"))
+			   (format "%s -user %s %s -log %s -print %s %s"
+			       org-babel-sas-command session org-babel-sas-command-options
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log"))
+			       (concat tmp-file ".lst")
+			       (concat tmp-file ".sas")))) nil nil)
+	(kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
+	(delete-file (concat tmp-file ".sas"))
+	(if (file-readable-p (if org-babel-sas-logfile-name
+				 org-babel-sas-logfile-name
+				 (concat tmp-file ".log")))
+	    (progn
+	      (with-current-buffer
+		  (switch-to-buffer (find-file-noselect (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				   (concat tmp-file ".log"))))
+		(beginning-of-buffer)
+		(setq body (buffer-string)))
+	      (kill-buffer (file-name-nondirectory (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				   (concat tmp-file ".log"))))
+	      (delete-file  (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				   (concat tmp-file ".log")))
+	      body)
+"no log file ??"))
+   (cl-case result-type
+     (value
+      ;; org-babel-eval does pass external argument...
+      (let ((tmp-file (org-babel-temp-file "SAS-")))
+	    ;;((tmp-file "sas-file4677846547.sas")
+	;;(directory-sas ""))
+	(with-current-buffer
+	    (switch-to-buffer (get-buffer-create (concat tmp-file ".sas")))
+	  (set-visited-file-name (concat tmp-file ".sas"))
+	  (insert body)
+	  (save-buffer 0))
+	(shell-command (if org-babel-sas-windows
+			   (if (string= session "none")
+			       (format "%s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
+			       org-babel-sas-command 
+			       (concat tmp-file ".sas")
+			       (concat tmp-file ".lst")
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log")))
+			     (format "%s -USER %s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
+			       org-babel-sas-command session
+			       (concat tmp-file ".sas")
+			       (concat tmp-file ".lst")
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log"))))
+			 (if (string= session "none")
+			     (format "%s %s -log %s -print %s %s"
+			       org-babel-sas-command org-babel-sas-command-options
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log"))
+			       (concat tmp-file ".lst")
+			       (concat tmp-file ".sas"))
+			   (format "%s -user %s %s -log %s -print %s %s"
+			       org-babel-sas-command session org-babel-sas-command-options
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log"))
+			       (concat tmp-file ".lst")
+			       (concat tmp-file ".sas")))) nil nil)
+	(kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
+	(delete-file (concat tmp-file ".sas"))
+	(if (file-readable-p sastab-tmp-file)
+	    (org-babel-result-cond result-params
+	      (org-babel-chomp
+	       (with-current-buffer (find-file-noselect sastab-tmp-file)
+		 (buffer-string))
+	       "\n")
+	      (org-babel-import-elisp-from-file sastab-tmp-file '(16)))
+	  (progn
+	    (if (get-buffer (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log")))
+		(with-current-buffer (get-buffer  (if org-babel-sas-logfile-name
+						      org-babel-sas-logfile-name
+						    (concat tmp-file ".log")))
+		  (revert-buffer :ignore-auto :noconfirm :preserve-modes))
+	      (save-window-excursion (pop-to-buffer-same-window (find-file-noselect (if org-babel-sas-logfile-name
+						      org-babel-sas-logfile-name
+						    (concat tmp-file ".log"))))))
+	    (format "Errors, please see [[file://%s][log file]] (in Buffer list)" (if org-babel-sas-logfile-name
+						      org-babel-sas-logfile-name
+						    (concat tmp-file ".log")))))))     
+     (output
+      ;; org-babel-eval does pass external argument...
+      (let ((tmp-file (org-babel-temp-file "SAS-")))
+	    ;;((tmp-file "sas-file4677846547.sas")
+	;;(directory-sas ""))
+	(with-current-buffer
+	    (switch-to-buffer (get-buffer-create (concat tmp-file ".sas")))
+	  (set-visited-file-name (concat tmp-file ".sas"))
+	  (insert body)
+	  (save-buffer 0))
+	(shell-command (if org-babel-sas-windows
+			   (if (string= session "none")
+			       (format "%s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
+			       org-babel-sas-command 
+			       (concat tmp-file ".sas")
+			       (concat tmp-file ".lst")
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log")))
+			       (format "%s -USER %s -SYSIN %s -NOTERMINAL NOSPLASH -NOSTATUSWIN -NOICON -PRINT %s -LOG %s"
+			       org-babel-sas-command session
+			       (concat tmp-file ".sas")
+			       (concat tmp-file ".lst")
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log"))))
+			 (if (string= session "none")
+			   (format "%s %s -log %s -print %s %s"
+			       org-babel-sas-command org-babel-sas-command-options
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log"))
+			       (concat tmp-file ".lst")
+			       (concat tmp-file ".sas"))
+			   (format "%s -user %s %s -log %s -print %s %s"
+			       org-babel-sas-command session org-babel-sas-command-options
+			       (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log"))
+			       (concat tmp-file ".lst")
+			       (concat tmp-file ".sas")))) nil nil)
+	 (message "SAS log file is: %s" (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log")))
+	(kill-buffer (file-name-nondirectory (concat tmp-file ".sas")))
+	(delete-file (concat tmp-file ".sas"))
+	  (if (file-readable-p (concat tmp-file ".lst"))
+	    (progn
+	      (with-current-buffer
+		  (switch-to-buffer (find-file-noselect (concat tmp-file ".lst")))
+		(beginning-of-buffer)
+		(setq body (buffer-string)))
+	       (kill-buffer (file-name-nondirectory (concat tmp-file ".lst")))
+	      (delete-file  (concat tmp-file ".lst"))
+	      body)
+	  (progn
+	    (if (get-buffer (if org-babel-sas-logfile-name
+				   org-babel-sas-logfile-name
+				 (concat tmp-file ".log")))
+		(with-current-buffer (get-buffer  (if org-babel-sas-logfile-name
+						      org-babel-sas-logfile-name
+						    (concat tmp-file ".log")))
+		  (revert-buffer :ignore-auto :noconfirm :preserve-modes))
+	      (save-window-excursion (pop-to-buffer-same-window (find-file-noselect (if org-babel-sas-logfile-name
+						      org-babel-sas-logfile-name
+						    (concat tmp-file ".log"))))))
+	    (format "Errors, please see [[file://%s][log file]] (in Buffer list)" (if org-babel-sas-logfile-name
+						      org-babel-sas-logfile-name
+						    (concat tmp-file ".log"))))))))))
 
 (defun org-babel-sas-evaluate-session
     (session body result-type result-params sastab-tmp-file)

@@ -5,26 +5,35 @@ run;
 
 #+RESULTS:
 #+begin_example
-Le SystÃ¨me SAS
+Le Système SAS                                                                                                                   1
 
-                                       Drive                   Engine                                 MPG_
-Obs. Make  Model          Type  Origin Train     MSRP  Invoice  Size  Cylinders Horsepower MPG_City Highway Weight Wheelbase Length
+                                                                                                  M
+                                                D                            E         H          P
+                                                r                            n    C    o          G           W
+                                                i                            g    y    r     M    _           h
+                                                v                    I       i    l    s     P    H           e
+                                        O       e                    n       n    i    e     G    i     W     e     L
+                    M                   r       T                    v       e    n    p     _    g     e     l     e
+ O      M           o            T      i       r         M          o       S    d    o     C    h     i     b     n
+ b      a           d            y      g       a         S          i       i    e    w     i    w     g     a     g
+ s      k           e            p      i       i         R          c       z    r    e     t    a     h     s     t
+ .      e           l            e      n       n         P          e       e    s    r     y    y     t     e     h
 
-   1 Acura MDX            SUV    Asia  All    $36,945  $33,337   3.5      6         265       17       23    4451     106      189 
-   2 Acura RSX Type S 2dr Sedan  Asia  Front  $23,820  $21,761   2.0      4         200       24       31    2778     101      172 
-   3 Acura TSX 4dr        Sedan  Asia  Front  $26,990  $24,647   2.4      4         200       22       29    3230     105      183 
-   4 Acura TL 4dr         Sedan  Asia  Front  $33,195  $30,299   3.2      6         270       20       28    3575     108      186 
-   5 Acura 3.5 RL 4dr     Sedan  Asia  Front  $43,755  $39,014   3.5      6         225       18       24    3880     115      197 
+  1   Acura   MDX              SUV     Asia   All      $36,945    $33,337   3.5   6   265   17   23   4451   106   189
+  2   Acura   RSX Type S 2dr   Sedan   Asia   Front    $23,820    $21,761   2.0   4   200   24   31   2778   101   172
+  3   Acura   TSX 4dr          Sedan   Asia   Front    $26,990    $24,647   2.4   4   200   22   29   3230   105   183
+  4   Acura   TL 4dr           Sedan   Asia   Front    $33,195    $30,299   3.2   6   270   20   28   3575   108   186
+  5   Acura   3.5 RL 4dr       Sedan   Asia   Front    $43,755    $39,014   3.5   6   225   18   24   3880   115   197
 #+end_example
 
 
 
-#+begin_src sas :results output graphics :file "~/COURS/SAS/NOTEBOOK/Org-Babel-sas/histogram.png" :session :exports both :comments org
+
+#+begin_src sas :results output graphics :file "Z:\\histogram.png" :session :exports both :comments org
 proc univariate data=sashelp.cars;
 histogram weight;
 run;
 #+end_src
 
 #+RESULTS:
-[[file:~/COURS/SAS/NOTEBOOK/Org-Babel-sas/histogram.png]]
-
+[[file:Z:\histogram.png]]
