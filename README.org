@@ -28,25 +28,25 @@ Support for SAS language in org-babel
        (setq org-babel-sas-command "C:\\Progra~1\\SASHome\\SASFoundation\\9.4\\sas.exe")
       #+END_SRC
 
-    4. ESS and session.
-       To use syntaxic coloration install ESS. If you are on
-       Unix/LMinux, you can use a real session with ESS: 
-       i)  install ess and change the following file
-       =ess/etc/ess-sas-sh-command= with your sas executable path
-       ii) set = org-babel-sas-realsession= to non nil. To set it 
-       you can add the following line in your =.emacs= 
-       #+BEGIN_SRC elisp
-        (setq org-babel-sas-realsession t)
-       #+END_SRC
-
-    5. optionnal
-       if you want to use ESS directly in a sas file you may find useful to define 
-       ess-sas-local-unix-keys and ess-sas-submit-command. For example, my config is
+   4. ESS and session.
+      To use syntaxic coloration install ESS. If you are on
+      Unix/LMinux, you can use a real session with ESS: 
+      i)  install ess and change the following file
+      =ess/etc/ess-sas-sh-command= with your sas executable path
+      ii) set = org-babel-sas-realsession= to non nil. To set it 
+      you can add the following line in your =.emacs= 
       #+BEGIN_SRC elisp
-	('require 'ess-site)
-	(setq ess-sas-local-unix-keys t)
-	(setq ess-sas-submit-command "/usr/local/bin/sas_u8")
-     #+END_SRC
+      (setq org-babel-sas-realsession t)
+      #+END_SRC
+
+   5. Optionnal:
+      if you want to use ESS directly in a sas file you may find useful to define 
+      ess-sas-local-unix-keys and ess-sas-submit-command. For example, my config is
+      #+BEGIN_SRC elisp
+      ('require 'ess-site)
+      (setq ess-sas-local-unix-keys t)
+      (setq ess-sas-submit-command "/usr/local/bin/sas_u8")
+      #+END_SRC
 
 ** Limitations
    For the moment windows support is limited as "real session" is not
