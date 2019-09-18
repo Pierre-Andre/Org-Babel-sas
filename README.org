@@ -175,6 +175,6 @@ first lines of table =blib= in the result value
 : drop Race; 
 : run;
 : #+END_SRC
-    This cannot be used in "real session" (in this case, theres is
+    This cannot be used in "real session" (in this case, there is
     only one log file and it is appended for every src block
-    evaluation.
+    evaluation.)
