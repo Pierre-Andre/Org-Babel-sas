@@ -24,9 +24,9 @@ Support for SAS language in org-babel
       =.emacs= or =set-variable= in an interactive mode. The default
       is =/usr/local/bin/sas_u8= (SAS unicode for unix). To set it 
        you can add the following line in your =.emacs= 
-#+BEGIN_SRC elisp
-(setq org-babel-sas-command "C:\\Progra~1\\SASHome\\SASFoundation\\9.4\\sas.exe")
-#+END_SRC
+      #+BEGIN_SRC elisp
+       (setq org-babel-sas-command "C:\\Progra~1\\SASHome\\SASFoundation\\9.4\\sas.exe")
+      #+END_SRC
 
     4. ESS and session.
        To use syntaxic coloration install ESS. If you are on
@@ -35,9 +35,9 @@ Support for SAS language in org-babel
        =ess/etc/ess-sas-sh-command= with your sas executable path
        ii) set = org-babel-sas-realsession= to non nil. To set it 
        you can add the following line in your =.emacs= 
-#+BEGIN_SRC elisp
-(setq org-babel-sas-realsession t)
-#+END_SRC
+       #+BEGIN_SRC elisp
+        (setq org-babel-sas-realsession t)
+       #+END_SRC
 
     5. optionnal
        if you want to use ESS directly in a sas file you may find useful to define 
