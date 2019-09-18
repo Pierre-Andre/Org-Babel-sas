@@ -49,7 +49,7 @@ Support for SAS language in org-babel
       #+END_SRC
 
 ** Limitations
-   For the moment windows support is limited as "real session" is not
+   For the moment windows, support is limited as "real session" is not
    possible due to SAS. Moreover the submitted program have the following limitation
    "The maximum line length is 32767 bytes" (from SAS 9.4 Companion for Windows, Fifth Edition)
 ** Philosophy
@@ -151,7 +151,7 @@ first lines of table =blib= in the result value
 : run;
 : #+end_src
 **** ODS graphics
-     As ODS graphics do not have identical export commands to use ODS
+     As ODS graphics do not have identical export commands. To use ODS
      graphics you must use =odsgraphics= instead of =graphics=. If you
      want two or more graphics, the =:file= will be understood as the
      basename and SAS will export them as png files (the default).
@@ -161,7 +161,8 @@ first lines of table =blib= in the result value
 : run;
 : #+end_src
 *** log
-    Log files are given in buffer. In order to debug programs =log= can be used as follows: 
+    Log files are given in buffer. In order to debug programs =log=
+    can be substituted to results (easier than switching to log buffer) as follows:
 : #+BEGIN_SRC sas   :results none :session
 : data blob;
 : set sashelp.birthwgt;
