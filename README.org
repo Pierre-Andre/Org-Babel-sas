@@ -70,10 +70,12 @@ Support for SAS language in org-babel
 *** output results (except graphics)
     1. =:output=
        work as expected 
-    2. =:value=
-       SAS is not a functionnal language and =:value= does not have sense. 
-       In order to use =:value= another argument :sastab is needed to use this
-       SAS table as a return value.
+    2. =:value= SAS is not a functionnal language and =:value= does
+       not have sense.  In order to use =:value= another argument
+       =:sastab= is needed to point to the SAS table to be returned as a
+       value. This is done by exporting with proc export the given SAS
+       table in the =:sastab =argument (thus any argument compatible
+       with table argument of proc export will work)
 *** output graphics results 
     SAS have two types of graphics: classical and ODS. Thus to use
     graphics there is two arguments =:graphisc= and =:odsgraphics=
@@ -84,10 +86,11 @@ Support for SAS language in org-babel
 : run;
 : #+END_SRC
 *** simple output but with a given :session
-using =(setq org-babel-sas-realsession nil)= and a given user library
-directory under windows, a sas table can be created in one chunk and
-used in another (using the same session). One drawback is that you
-need to deleted all created files if not needed (see next example)
+using =(setq org-babel-sas-realsession nil)= (the default value) and a
+given user library directory under windows, a sas table can be created
+(in this given directory/library) in one chunk and used in another (using the same session). One
+drawback is that you need to deleted all created files if not needed
+(see also next example)
 : #+BEGIN_SRC sas :results none :session "c:/users/pac/tmp"
 : data blob;
 : set sashelp.birthwgt(firstobs=1 obs=3);
@@ -112,15 +115,15 @@ will be deleted when closing emacs)
 : run;
 : #+END_SRC
 *** value output with :session
-You can use a :session to create a SAS table (without any results)
+You can use a =:session= to create a SAS table without any results
 printed using =:results none=. And on another chunk you can reuse the
-SAS table, modify it and see the results in a value fashion. 
+SAS table, modify it and see the results in a "value" fashion. 
 
 To use =:results value= you must add a =:sastab= argument which is
 the name of the SAS table you wish to see in the result value and you
 can use options compatible with the =data= argument of =proc
-export=. In this example I do not want the whole table but the three
-first lines of table blib in the result value
+export=. In this example I do not want the whole table but only the three
+first lines of table =blib= in the result value
 : #+BEGIN_SRC sas   :results none :session
 : data blob;
 : set sashelp.birthwgt;
@@ -135,19 +138,13 @@ first lines of table blib in the result value
 : run;
 : #+END_SRC
 
-#+RESULTS:
-| LowBirthWgt | Married | AgeGroup | Race   | Drinking | Death | Smoking | SomeCollege |
-| No          | No      |        3 | Asian  | No       | No    | No      | Yes         |
-| No          | No      |        2 | White  | No       | No    | No      | No          |
-| Yes         | Yes     |        2 | Native | No       | Yes   | No      | No          |
-
 
 
 *** graphics
 **** Classical graphics
      In order to get the graphics, you need to specify =graphics= in
-     =:session= and give file name in =:file=. As in =ob-R.el=
-     filename will specify format
+     =:results= and give filename in =:file=. As in =ob-R.el=
+     the filename extension will specify the format
 : #+begin_src sas :results output graphics :file "Z:\\histogram.png" :session :exports both :comments org
 : proc univariate data=sashelp.cars;
 : histogram weight;
@@ -155,7 +152,9 @@ first lines of table blib in the result value
 : #+end_src
 **** ODS graphics
      As ODS graphics do not have identical export commands to use ODS
-     graphics you must use =odsgraphics= instead of =graphics=
+     graphics you must use =odsgraphics= instead of =graphics=. If you
+     want two or more graphics, the =:file= will be understood as the
+     basename and SAS will export them as png files (the default).
 : #+begin_src sas :results odsgraphics :file "plotreg" :session :exports both :comments org
 : proc reg data=sashelp.cars plot(only)=(RESIDUALBYPREDICTED FITPLOT);
 : model MPG_City=Weight; 
@@ -176,4 +175,6 @@ first lines of table blib in the result value
 : drop Race; 
 : run;
 : #+END_SRC
-     This cannot be used in "real session".
+    This cannot be used in "real session" (in this case, theres is
+    only one log file and it is appended for every src block
+    evaluation.
