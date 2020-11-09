@@ -2,8 +2,9 @@
 Support for SAS language in org-babel
 
 ** Installation
-   1. Download (or clone) =ob-sas.el= and put it in the 
-      directory =/home/foouser/.emacs.d/lisp= 
+   1. Download (or clone) =ob-sas.el= and put it in your emacs
+      directory (for example the directory
+      =/home/foouser/.emacs.d/lisp=)
 
    2. To use SAS as another babel language, add the following to your
       =.emacs=
@@ -28,11 +29,11 @@ Support for SAS language in org-babel
        (setq org-babel-sas-command "C:\\Progra~1\\SASHome\\SASFoundation\\9.4\\sas.exe")
       #+END_SRC
 
-   4. ESS and session.
-      To use syntaxic coloration install ESS.
+   4. Syntaxic coloration (optional): install ESS.
 
-   5. ESS and session: optional. If you are on
+   5. ESS and session (optional). If you are on
       Unix/Linux, you can use a real session with ESS: 
+
       i)  install ess and change in the following file
       =ess/etc/ess-sas-sh-command= and point to your sas executable
 
@@ -52,11 +53,12 @@ Support for SAS language in org-babel
       #+END_SRC
 
 ** Limitations
-   For the moment windows, support is limited as "real session" is not
-   possible due to SAS: only SAS table are present in session, no
-   macro for instance. Moreover the submitted program have the
-   following limitation "The maximum line length is 32767 bytes" (from
-   SAS 9.4 Companion for Windows, Fifth Edition)
+   Windows support is limited:
+   - "real session" is not possible due to SAS: only SAS table are
+     present in session, no macro for instance.
+   - Moreover the submitted program have the following limitation "The
+     maximum line length is 32767 bytes" (from SAS 9.4 Companion for
+     Windows, Fifth Edition)
 ** Philosophy
    Org-Babel-sas try to propose the classical arguments of src blocks
    but there are several difficulties due to the structure of SAS language.
@@ -79,11 +81,11 @@ Support for SAS language in org-babel
        not have sense.  In order to use =:value= another argument
        =:sastab= is needed to point to the SAS table to be returned as a
        value. This is done by exporting with proc export the given SAS
-       table in the =:sastab =argument (thus any argument compatible
+       table in the =:sastab= argument (thus any argument compatible
        with table argument of proc export will work)
 *** output graphics results 
     SAS have two types of graphics: classical and ODS. Thus to use
-    graphics there is two arguments =:graphisc= and =:odsgraphics=
+    graphics there is two arguments =:graphics= and =:odsgraphics=
 ** Examples
 *** basic example: no session, simple output (no value, no graphics)
 : #+BEGIN_SRC sas :results output :session none 
