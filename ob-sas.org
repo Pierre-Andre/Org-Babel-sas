@@ -502,6 +502,8 @@ qqch de tres basique:
 (run-sas)
 #+end_src
 ou mieux =run-python= et =python-shell-make-comint=
+*** Ess
+R ->  run-ess-r -> inferior-ess ?
 ** variables
 #+begin_src emacs-lisp :results none :tangle sas-inferior.el
 (defvar sas-cli-file-path "/usr/local/bin/sas_u8"
