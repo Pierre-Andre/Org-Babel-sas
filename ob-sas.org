@@ -504,7 +504,8 @@ qqch de tres basique:
 *** Python
 ou mieux =run-python= et =python-shell-make-comint=
 *** Ess
-R ->  run-ess-r -> inferior-ess ?
+R ->  run-ess-r ->
+inferior-ess -> inferior-ess--start-process -> comint-exec -> comint-exec-1 -> start-file-process -> start-file
 ** variables
 #+begin_src emacs-lisp :results none :tangle sas-inferior.el
 (defvar sas-cli-file-path "/usr/local/bin/sas_u8"
