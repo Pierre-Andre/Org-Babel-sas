@@ -501,6 +501,7 @@ qqch de tres basique:
       (inferior-sas-mode))))
 (run-sas)
 #+end_src
+*** Python
 ou mieux =run-python= et =python-shell-make-comint=
 *** Ess
 R ->  run-ess-r -> inferior-ess ?
