@@ -480,6 +480,7 @@ use `start-file-process'."
                    )))  )
 #+end_src
 ** demarrage du mode
+*** Basique
 qqch de tres basique:
 #+begin_src emacs-lisp :results none :tangle inferior-sas.el
 (defun run-sas ()
@@ -501,9 +502,12 @@ qqch de tres basique:
       (inferior-sas-mode))))
 (run-sas)
 #+end_src
+*** Python
 ou mieux =run-python= et =python-shell-make-comint=
+run-python -> python-shell-make-comint -> make-comint-in-buffer -> comint-exec -> comint-exec-1 -> start-file-process -> start-process -> make-process
 *** Ess
-R ->  run-ess-r -> inferior-ess ?
+R ->  run-ess-r ->
+inferior-ess -> inferior-ess--start-process -> comint-exec -> comint-exec-1 -> start-file-process -> start-filen
 ** variables
 #+begin_src emacs-lisp :results none :tangle sas-inferior.el
 (defvar sas-cli-file-path "/usr/local/bin/sas_u8"
@@ -550,7 +554,7 @@ Pour recuperer le nom du process =python-shell-get-buffer=
    - On constuit le nom du process global via  =python-shell-get-process-name=
    - on regarde si  le process est running via =comint-check-proc= et si oui on prend le dedicated puis sinon le global et sinon ???
 
-stocke dans la variable (globale ?) =python-shell--parent-buffer= et il est cnostruit par =python-shell-get-process-name= dedicated)
+stocke dans la variable (globale ?) =python-shell--parent-buffer= et il est construit par =python-shell-get-process-name= dedicated)
 ** ESS
 =ess-get-process= permet de recuperer le nom du process qui est
 a priori stocké dans ~ess-local-process-name~ variable locale et aussi dans
