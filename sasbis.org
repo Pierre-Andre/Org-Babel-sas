@@ -60,7 +60,7 @@ ce module regroupe
   :group 'sasbis
   :type  'string)
 
-(defcustom sasbis-delay-close 800
+(defcustom sasbis-delay-kill-buffer 800
   "Delay in millisecs between endsas; and killing windows"
   :group 'sasbis
   :type  'integer)
@@ -790,7 +790,7 @@ defaults to t when called interactively."
          (name-buffer-saslog (concat "Log-" (substring name-buffer-sas 1 -1))))
     (sasbis-shell-send-exit process)
     ;; sits for a clean exit of Sas process
-    (sleep-for 0 500)
+    (sleep-for 0 sasbis-delay-kill-buffer)
     ;; kill buffer
     (if sasbis-log-separated
         (kill-buffer name-buffer-saslog))
