@@ -1,221 +1,5 @@
 #+TITLE: Sasbis
 
-* todo
-** liste des functions pour eliminer ess
-*** =ess-eval-buffer=
-permet d'evaluer le bloc src
-mais la chaine d'appel est la suivante
-ess-eval-buffer -> ess-eval-region -> ess--eval-region ->  ess-eval-region--normalise-region + ess-send-region -> ess-send-string
-
-#+begin_src emacs-lisp
-(defun ess-eval-region--normalise-region (start end)
-  "Clean the region from START to END for evaluation.
-This trims newlines at beginning and end of the region because
-they might throw off the debugger."
-  (save-excursion
-    (goto-char start)
-    (skip-chars-forward "\n\t ")
-    (setq start (point))
-    (unless mark-active
-      (ess-blink-region start end))
-    (goto-char end)
-    (skip-chars-backward "\n\t ")
-    (setq end (point))))
-#+end_src
-*** =ess-send-string=
-#+begin_src emacs-lisp
-(defun ess-send-string (process string &optional visibly message _type)
-  "ESS wrapper for `process-send-string'.
-Run `comint-input-filter-functions' and current buffer's and
-PROCESS' `ess-presend-filter-functions' hooks on the input
-STRING. VISIBLY can be nil, t, 'nowait or a string.  If string
-the behavior is as with 'nowait with the differences that
-inserted string is VISIBLY instead of STRING (evaluated command
-is still STRING).  In all other cases the behavior is as
-described in `ess-eval-visibly'. STRING need not end with
-\\n. TYPE is a symbol indicating type of the string.
-MESSAGE is a message to display."
-  ;; No support of `visibly' when there's no secondary prompt
-  (let ((visibly (if (and (eq visibly t)
-                          (null inferior-ess-secondary-prompt))
-                     'nowait
-                   visibly))
-        (string (ess--run-presend-hooks process string)))
-    (inferior-ess--interrupt-subjob-maybe process)
-    (inferior-ess-mark-as-busy process)
-    (process-put process 'last-eval (current-time))
-    (cond
-     ;; Wait after each line
-     ((eq visibly t)
-      (let ((ess--inhibit-presend-hooks t))
-        (ess-eval-linewise string)))
-     ;; Insert command and eval invisibly
-     ((or (stringp visibly)
-          (eq visibly 'nowait))
-      (with-current-buffer (process-buffer process)
-        (save-excursion
-          (goto-char (process-mark process))
-          (insert-before-markers
-           (propertize (format "%s\n"
-                               (replace-regexp-in-string
-                                "\n" "\n+ "
-                                (if (stringp visibly) visibly string)))
-                       'font-lock-face 'comint-highlight-input)))
-        (process-send-string process (ess--concat-new-line-maybe string))))
-     (t
-      (process-send-string process (ess--concat-new-line-maybe string))))
-    (when message
-      (message "%s" message))))
-
-#+end_src
-permet d'envoyer le string de fin
-=inferior-ess-send-string=
-*** =org-babel-sas--send-string=
-**** tout d'abord  le nettoyage de la commande
-#+begin_src emacs-lisp
-(defun org-babel-sas--concat-new-line-maybe (string)
-  "Append \\n at the end of STRING if missing."
-  (if (string-match "\n\\'" string (max (- (length string) 2) 0))
-      string
-    (concat string "\n")))
-#+end_src
-**** ensuite l'envoi de la commande
-#+begin_src emacs-lisp
-(defun org-babel-sas--send-string (process string)
-  "Send string to process using process-send-string"
-(process-send-string process (org-babel-sas--concat-new-line-maybe string)))
-#+end_src
-**** reste le demmarage du process
-The fundamental building blocks for interacting with processes are =start-process=, for kinda-sorta-asynchronous process calls; and =call-process=, for synchronous process calls.
-#+begin_src emacs-lisp
-(start-process )
-#+end_src
-**** autre possibité: comint
-https://www.masteringemacs.org/article/comint-writing-command-interpreter
-https://www.emacswiki.org/emacs/ComintMode
-
-https://stackoverflow.com/questions/13620498/why-emacs-comint-mode-doesnt-process-string-as-shell
-https://stackoverflow.com/questions/44937294/get-result-back-from-comint-redirect-send-command
-** variable
-*** =ess-eval-visibly-p=
-#+begin_src emacs-lisp
-(defcustom ess-eval-visibly 'nowait
-  "Non-nil means ess-eval- commands display commands in the process buffer.
-If 'nowait, ESS shows input commands in the process buffer, but
-doesn't wait for the process. Thus all the output is printed
-after the input lines.
-
-If t, ESS waits after each line of the command for the process
-output. This results in a nice sequence of input and output but
-stalls Emacs on long output (like Sys.sleep(5) in R).
-
-If nil, ESS doesn't print input commands and doesn't wait for the
-process.
-
-This variable also affect the evaluation of input code in
-iESS. The effect is similar to the above. If t then ess waits for
-the process output, otherwise not."
-  :group 'ess-proc
-  :package-version '(ess . "19.04")
-  :type '(choice (const t) (const nowait) (const nil)))
-#+end_src
-*** =ess-local-process-name=
-#+begin_src emacs-lisp
-(defvar-local ess-local-process-name nil
-  "The name of the ESS process associated with the current buffer.")
-#+end_src
-*** =ess-ask-for-ess-directory=
-ess-custom.el
-#+begin_src emacs-lisp
-(defcustom ess-ask-for-ess-directory t
-  "Non-nil means request the process directory each time S is run."
-  :group 'ess
-  :type 'boolean)
-#+end_src
-
- f
-** comint
-make-comint-in-buffer ->  comint-exec -> comint-exec-1 -> start-file-process -> start-process -> make-process
-pour separer input et output il faut faire
-https://emacs.stackexchange.com/questions/17394/discard-stderr-in-start-process
-*** gloubi
-#+begin_src emacs-lisp
-make-process :name "sas"
-              :buffer (generate-new-buffer "*sas*")
-              :command '("mplayer" "/path/to/video")
-              :connection-type 'pipe
-              :stderr (generate-new-buffer "*sas err*"))
-#+end_src
-mais dans start-process c'est pas propose
--> alternative avec program-args qui a une liste
-("-s" "blabla")
-ou une plist
-(:switches ("-s" "blabla") :stderr "*sas err*")
-#+begin_src emacs-lisp
-;(if (not (plist-get '("-s" "blabla") ':stderr)) "yes")
-(plist-get '(:switches ("-nodms" "-nonews" "-stdio"
-                            "-nofullstimer" "-nodate" "-nocenter"
-                            "-terminal" "-pagesize" "max"
-                            "-nosyntaxcheck") :stderr "*sas err*") ':switches)
-(plist-get (list :switches  sas-cli-arguments ':stderr "*sas err*") ':switches)
-#+end_src
-
-#+RESULTS:
-| -nodms | -nonews | -stdio | -nofullstimer | -nodate | -nocenter | -terminal | -pagesize | max | -nosyntaxcheck |
-
-#+begin_src emacs-lisp :results none
-(defun his-tracing-function (orig-fun &rest args)
-  (message "comint-exec-1  called with args %S" args)
-  (let ((res (apply orig-fun args)))
-    (message "display-buffer returned %S" res)
-    res))
-(defun his-tracing-function1 (orig-fun &rest args)
-  (message "start-file-process  called with args %S" args)
-  (let ((res (apply orig-fun args)))
-    (message "display-buffer returned %S" res)
-    res))
-
-
-(advice-add 'comint-exec-1   :around #'his-tracing-function)
-(advice-add 'start-file-process   :around #'his-tracing-function1)
-(run-sasbis)
-#+end_src
-
-
-
-#+begin_src emacs-lisp
-(defvar sas-cli-file-path "/usr/local/bin/sas_u8"
-  "Path to the program used by `run-sasbis'")
-(defvar sas-cli-arguments '("-nodms" "-nonews" "-stdio"
-                            "-nofullstimer" "-nodate" "-nocenter"
-                            "-terminal" "-pagesize" "max"
-                            "-nosyntaxcheck"))
-                             (append '(sas) sas-cli-arguments)
-#+end_src
-
-#+RESULTS:
-| sas | -nodms | -nonews | -stdio | -nofullstimer | -nodate | -nocenter | -terminal | -pagesize | max | -nosyntaxcheck |
-
-**** via comint avec log+output mélangé: =run-sasbis=
-#+begin_src emacs-lisp :results none
-(defun run-sasbis ()
-  "Run an inferior instance of `sas' inside Emacs."
-  (interactive)
-  (let* ((sas-program sas-cli-file-path)
-         (buffer (comint-check-proc "sas")))
-    ;; pop to the "*sas*" buffer if the process is dead, the
-    ;; buffer is missing or it's got the wrong mode.
-    (pop-to-buffer-same-window
-     (if (or buffer (not (derived-mode-p 'inferior-sas-mode))
-             (comint-check-proc (current-buffer)))
-         (get-buffer-create (or buffer "*sas*"))
-       (current-buffer)))
-    ;; create the comint process if there is no buffer.
-    (unless buffer
-      (apply 'make-comint-in-buffer "sas"
-                                                  buffer sas-program nil sas-cli-arguments )
-                                            (inferior-sas-mode))))
-#+end_src
 * sasbis.el
 ce module regroupe
 1. un sas-mode qui permet d'editer du SAS avec coloration syntaxique
@@ -271,15 +55,15 @@ ce module regroupe
 #+begin_src emacs-lisp :tangle sasbis.el
 ;; The next two are ``the inside of [...] in a regexp'' to be used in
 ;; (skip-chars-(for|back)ward SAS-..-chars)
-(defcustom sas-white-chars " \t\n\f"
+(defcustom sasbis-white-chars " \t\n\f"
   "This does NOT escape blanks (RMH, 2000/03/20)."
   :group 'sasbis
   :type  'string)
 
-(defcustom sas-comment-chars (concat sas-white-chars ";")
-  "Doc?"
+(defcustom sasbis-delay-close 800
+  "Delay in millisecs between endsas; and killing windows"
   :group 'sasbis
-  :type  'string)
+  :type  'integer)
 #+end_src
 ** inferior-sasbis-mode
 *** Idea
@@ -1189,7 +973,7 @@ character address of the specified TYPE."
           (if (looking-at ";\n")
               (forward-char 2)
             (forward-char 1))
-          (skip-chars-forward sas-white-chars)))
+          (skip-chars-forward sasbis-white-chars)))
     (goto-char (point-min))))
 
 (defun sasbis-end-of-sas-statement ()
@@ -1214,7 +998,7 @@ to skip the first displacement to the end of statement."
   (goto-char (point-min)))
 (if (looking-at "[ \t\n]+proc[ \t\n]+\\([A-Za-z]+\\)")
         (setq nameproc (match-string 1)))
-      (skip-chars-forward sas-white-chars)
+      (skip-chars-forward sasbis-white-chars)
     (concat nameproc "")))
 
 (defun sasbis-end-of-sas-proc (&optional plusone redo)
