@@ -1,5 +1,4 @@
 #+TITLE: Sasbis
-
 * sasbis.el
 ce module regroupe
 1. un sas-mode qui permet d'editer du SAS avec coloration syntaxique
@@ -69,15 +68,15 @@ ce module regroupe
 *** Idea
 The main idea of sasbis.el is to provide
 1. a way to send SAS program from emacs buffer to SAS program
-2. to get the results
-3. to have a syntaxic coloration in the buffer.
+2. a way to get the results
+3. a way to have a syntaxic coloration in the buffer.
 
 Buffer Emacs -----> SAS : results (and log/errors)
 **** Inferior mode
 
 1. The classical way to interact is to setup an "inferior" SAS process with an
    associated buffer using comint. In that inferior buffer, the user types its
-   command send them (usually using RET) and get the results and/or the errors.
+   command, send them (usually using RET) and get the results and/or the errors.
 
    As comint don't provide a way to separate results (SAS output) from standard
    error (ie SAS log) the classical output have them both in the associated
@@ -104,9 +103,7 @@ Buffer Emacs -----> SAS : results (and log/errors)
     make-comint-in-buffer-std ->  comint-exec-std -> comint-exec-1-std -> start-file-process-std -> start-process-std -> make-process (provided by emacs)
 
 Starting the inferior mode buffer is done with =run-sasbis=. This function is the
-same as =run-python= except that the user can choose the name of the inferior
-SASBIS buffer (useful for org babel src_block and =:session= argument) and to have
-a separate std error buffer.
+same as =run-python=
 **** SASBIS mode
 It is the major mode providing
 - syntaxic coloration
@@ -158,7 +155,9 @@ https://documentation.sas.com/doc/da/pgmsascdc/9.4_3.5/basess/p0rgzxi5r1euj0n14e
 
 avec cela on peut faire du comint de base et via tramp.
 *** functions to start process with std error
-the composition chain to start a comint buffer with output/errors separated
+the composition chain to start a comint buffer with output/errors separated.
+These functions are the same as in comint but the stderr argument.
+
 make-comint-in-buffer-std ->  comint-exec-std -> comint-exec-1-std -> start-file-process-std -> start-process-std -> make-process
 #+begin_src emacs-lisp :results none :tangle sasbis.el
 (defun make-comint-in-buffer-std (name buffer program &optional startcommand stderr &rest switches)
@@ -320,7 +319,7 @@ use `start-file-process'."
                    )))  )
 #+end_src
 *** start a buffer *SAS* with inferior-mode
-**** Run-sas
+**** Run-sasbis
 the main function to start a buffer *SAS*
 
 run-sasbis -> sasbis-shell-make-comint
