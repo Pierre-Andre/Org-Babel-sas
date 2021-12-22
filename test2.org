@@ -11,14 +11,7 @@ run;
 #+END_SRC
 
 #+RESULTS:
-: Le Système SAS                                                                                                                   1
-: 
-:           Low                   Age                                                Some
-: Obs.    BirthWgt    Married    Group     Race     Drinking    Death    Smoking    College
-: 
-:   1       No          No         3      Asian        No        No        No         Yes  
-:   2       No          No         2      White        No        No        No         No   
-:   3       Yes         Yes        2      Native       No        Yes       No         No   
+: Errors, please see [[file:///tmp/babel-sy7Cyz/SAS-w2JbLs.log][log file]] (in Buffer list)
 
 
 The directory =~/tmp= must exist !
@@ -32,3 +25,13 @@ run;
 proc print data=blob;
 run;
 #+END_SRC
+
+#+RESULTS:
+: Le SystÃ¨me SAS
+:
+:           Low                   Age                                                Some
+: Obs.    BirthWgt    Married    Group     Race     Drinking    Death    Smoking    College
+:
+:   1       No          No         3      Asian        No        No        No         Yes
+:   2       No          No         2      White        No        No        No         No
+:   3       Yes         Yes        2      Native       No        Yes       No         No

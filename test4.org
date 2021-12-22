@@ -5,7 +5,10 @@ run;
 #+END_SRC
 
 
-#+BEGIN_SRC sas :results value :session :sastab blib(firstobs=1 obs=3)
+#+BEGIN_SRC sas :results log :session :sastab blib(firstobs=1 obs=3)
+data blob;
+set sashelp.birthwgt;
+run;
 data blib;
 set blob;
 drop Race;
@@ -17,4 +20,3 @@ run;
 | No          | No      |        3 | No       | No    | No      | Yes         |
 | No          | No      |        2 | No       | No    | No      | No          |
 | Yes         | Yes     |        2 | No       | Yes   | No      | No          |
-
