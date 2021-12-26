@@ -5,7 +5,7 @@ run;
 #+END_SRC
 
 
-#+BEGIN_SRC sas :results log :session :sastab blib(firstobs=1 obs=3)
+#+BEGIN_SRC sas :results value :session :sastab blib(firstobs=1 obs=3)
 data blob;
 set sashelp.birthwgt;
 run;

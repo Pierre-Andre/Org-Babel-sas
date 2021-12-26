@@ -1,5 +1,7 @@
-#+BEGIN_SRC sas :results output :session
-proc print data=sashelp.birthwgt(firstobs=1 obs=3);
+#+TITLE: :session none
+When =:session= is =none=, the src block is a SAS batch run
+#+BEGIN_SRC sas :results output :session none
+proc print data=sashelp.birthwgt(firstobs=1 obs=4);
 run;
 #+END_SRC
 
@@ -12,3 +14,57 @@ run;
 :      1      No          No         3      Asian        No        No        No         Yes
 :      2      No          No         2      White        No        No        No         No
 :      3      Yes         Yes        2      Native       No        Yes       No         No
+:      4      No          No         2      White        No        No        No         No
+
+
+
+The =log= is a possible result:
+#+BEGIN_SRC sas :results log :session none
+proc print data=sashelp.birthwgt(firstobs=1 obs=4);
+run;
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Le Système SAS
+
+NOTE: Copyright (c) 2016 by SAS Institute Inc., Cary, NC, USA.
+NOTE: SAS (r) Proprietary Software 9.4 (TS1M5 MBCS3170)
+      Licensed to UNIVERSITE DE RENNES II LINUX, Site 70106893.
+NOTE: This session is executing on the Linux 5.10.0-9-amd64 (LIN X64) platform.
+
+
+
+NOTE: Updated analytical products:
+
+      SAS/STAT 14.3
+      SAS/ETS 14.3
+      SAS/OR 14.3
+      SAS/IML 14.3
+      SAS/QC 14.3
+
+NOTE: Additional host information:
+
+ Linux LIN X64 5.10.0-9-amd64 #1 SMP Debian 5.10.70-1 (2021-09-30) x86_64 Unrecognized Linux Distribution
+
+NOTE: SAS initialization used:
+      real time           0.02 seconds
+      cpu time            0.02 seconds
+
+1          options formdlim='' pagesize=max nocenter nodate;
+2          proc print data=sashelp.birthwgt(firstobs=1 obs=4);
+3          run;
+
+NOTE: There were 4 observations read from the data set SASHELP.BIRTHWGT.
+NOTE: The PROCEDURE PRINT printed page 1.
+NOTE: PROCEDURE PRINT used (Total process time):
+      real time           0.04 seconds
+      cpu time            0.04 seconds
+
+
+NOTE: SAS Institute Inc., SAS Campus Drive, Cary, NC USA 27513-2414
+NOTE: The SAS System used:
+      real time           0.08 seconds
+      cpu time            0.08 seconds
+
+#+end_example

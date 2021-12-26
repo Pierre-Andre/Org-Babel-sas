@@ -1,29 +1,29 @@
-#+BEGIN_SRC sas :results value
-proc print data=sashelp.cars(firstobs=1 obs=5);
+#+TITLE: ODS plots#+TITLE: ODS plots#+TITLE: ODS plots#+TITLE: ODS plots#+TITLE: ODS plots#+TITLE: ODS plots#+TITLE: ODS plots
+* one ODS plots
+several proc display ODS graphics. Export commands are differents from classical graphics thus the =:results= is adapted
+#+begin_src sas :file plotresiduals.pdf :results  odsgraphics file :session :exports both :comments org
+proc reg data=sashelp.cars plot(only)=(RESIDUALBYPREDICTED);
+model MPG_City=Weight;
 run;
-#+END_SRC
+#+end_src
 
 #+RESULTS:
-#+begin_example
-Le Système SAS
+[[file:plotresiduals.pdf]]
 
-                                       Drive                   Engine                                 MPG_
-Obs. Make  Model          Type  Origin Train     MSRP  Invoice  Size  Cylinders Horsepower MPG_City Highway Weight Wheelbase Length
-
-   1 Acura MDX            SUV    Asia  All    $36,945  $33,337   3.5      6         265       17       23    4451     106      189 
-   2 Acura RSX Type S 2dr Sedan  Asia  Front  $23,820  $21,761   2.0      4         200       24       31    2778     101      172 
-   3 Acura TSX 4dr        Sedan  Asia  Front  $26,990  $24,647   2.4      4         200       22       29    3230     105      183 
-   4 Acura TL 4dr         Sedan  Asia  Front  $33,195  $30,299   3.2      6         270       20       28    3575     108      186 
-   5 Acura 3.5 RL 4dr     Sedan  Asia  Front  $43,755  $39,014   3.5      6         225       18       24    3880     115      197 
-#+end_example
-
-
-#+begin_src sas :results odsgraphics :file "plotreg" :session :exports both :comments org
+* several ODS plots
+using the same name, SAS can use it as template and numerate it in order to make several PNG files: =plotreg.png=, =plotreg1.png= etc. The =#+RESULTS= section will be inadequate because org mode src block is done to return only one result
+#+begin_src sas :file plotreg :results  odsgraphics file :session :exports both :comments org
 proc reg data=sashelp.cars plot(only)=(RESIDUALBYPREDICTED FITPLOT);
-model MPG_City=Weight; 
+model MPG_City=Weight;
 run;
 #+end_src
 
 #+RESULTS:
 [[file:plotreg]]
 
+
+
+the =#+RESULTS= should be
+[[file:plotreg.png]]
+file:plotreg1.png
+but there is no simple possibility for that (except a manual correction)
