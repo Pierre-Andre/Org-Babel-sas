@@ -29,10 +29,10 @@ Support for SAS language in org-babel
        (setq org-babel-sas-command "C:\\Progra~1\\SASHome\\SASFoundation\\9.4\\sas.exe")
       #+END_SRC
 
-   4. Syntaxic coloration (optional): install ESS.
+   4. Syntaxic coloration (optional): install sasbis (or ESS).
 
-   5. ESS and session (optional). If you are on
-      Unix/Linux, you can use a real session with ESS: 
+   5. sasbis and session (optional). If you are on
+      Unix/Linux, you can use a real session with sasbis:
 
       i)  install ess and change in the following file
       =ess/etc/ess-sas-sh-command= and point to your sas executable
@@ -43,14 +43,7 @@ Support for SAS language in org-babel
       (setq org-babel-sas-realsession t)
       #+END_SRC
 
-   6. Optionnal:
-      if you want to use ESS directly in a sas file you may find useful to define 
-      =ess-sas-local-unix-keys= and =ess-sas-submit-command=. For example, my config is
-      #+BEGIN_SRC elisp
-      ('require 'ess-site)
-      (setq ess-sas-local-unix-keys t)
-      (setq ess-sas-submit-command "/usr/local/bin/sas_u8")
-      #+END_SRC
+
 
 ** Limitations
    Windows support is limited:
@@ -63,7 +56,7 @@ Support for SAS language in org-babel
    Org-Babel-sas try to propose the classical arguments of src blocks
    but there are several difficulties due to the structure of SAS language.
 *** session
-    To use a true session, =ess= is needed and works only with unixes
+    To use a true session, =sasbis= is needed and works only with unixes
     (SAS limitation). This can be done by setting
     =org-babel-sas-realsession= to non nil (nil is the default
     value). For instance the following =(setq
@@ -85,7 +78,7 @@ Support for SAS language in org-babel
        with table argument of proc export will work)
 *** output graphics results 
     SAS have two types of graphics: classical and ODS. Thus to use
-    graphics there is two arguments =:graphics= and =:odsgraphics=
+    graphics there is two arguments for =:results= used in conjunction with =file=: =:results graphics file= and  =:results odsgraphics file=
 ** Examples
 *** basic example: no session, simple output (no value, no graphics)
 : #+BEGIN_SRC sas :results output :session none 
@@ -152,7 +145,7 @@ first lines of table =blib= in the result value
      In order to get the graphics, you need to specify =graphics= in
      =:results= and give filename in =:file=. As in =ob-R.el=
      the filename extension will specify the format
-: #+begin_src sas :results output graphics :file "Z:\\histogram.png" :session :exports both :comments org
+: #+begin_src sas :results graphics file :file "Z:\\histogram.png" :session :exports both :comments org
 : proc univariate data=sashelp.cars;
 : histogram weight;
 : run;
@@ -162,7 +155,7 @@ first lines of table =blib= in the result value
      graphics you must use =odsgraphics= instead of =graphics=. If you
      want two or more graphics, the =:file= will be understood as the
      basename and SAS will export them as png files (the default).
-: #+begin_src sas :results odsgraphics :file "plotreg" :session :exports both :comments org
+: #+begin_src sas :results odsgraphics file :file "plotreg" :session :exports both :comments org
 : proc reg data=sashelp.cars plot(only)=(RESIDUALBYPREDICTED FITPLOT);
 : model MPG_City=Weight; 
 : run;
@@ -183,6 +176,3 @@ first lines of table =blib= in the result value
 : drop Race; 
 : run;
 : #+END_SRC
-    This cannot be used in "real session" (in this case, there is
-    only one log file and it is appended for every src block
-    evaluation.)
