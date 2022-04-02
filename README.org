@@ -29,14 +29,12 @@ Support for SAS language in org-babel
        (setq org-babel-sas-command "C:\\Progra~1\\SASHome\\SASFoundation\\9.4\\sas.exe")
       #+END_SRC
 
-   4. Syntaxic coloration (optional): install sasbis (or ESS).
+   4. Syntaxic coloration (optional): install =sas.el=.
 
-   5. sasbis and session (optional). If you are on
-      Unix/Linux, you can use a real session with sasbis:
+   5. sas and session (optional). If you are on
+      Unix/Linux, you can use a real session with sas.el:
 
-      i)  install ess and change in the following file
-      =ess/etc/ess-sas-sh-command= and point to your sas executable
-
+      i)  install [[https://github.com/Pierre-Andre/sas-mode][sas.el]]
       ii) set =org-babel-sas-realsession= to non nil. To set it 
       you can add the following line in your =.emacs= 
       #+BEGIN_SRC elisp
