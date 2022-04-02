@@ -1,13 +1,13 @@
 #+TITLE: Fake session (not realsession)
 * Fake session using a temporary directory
-If key  =:session= exists but the value is nil, a temporary directory is created as long as the org buffer exists and openned and deleted after.
+If key  =:session= exists but the value is nil, a temporary directory is created (this directory will exists as long as the org buffer exists).
 The SAS dataset created are saved in this temp directory
 #+BEGIN_SRC sas :results none :session
 data blob;
 set sashelp.birthwgt(firstobs=1 obs=3);
 run;
 #+END_SRC
-and ca be used in another src block ; in this example the dataset is printed
+Thus SAS data set can  be used in another src block ; in this example the dataset =blob= is printed
 #+BEGIN_SRC sas :results output :session
 proc print data=blob;
 run;
@@ -25,13 +25,13 @@ run;
 
 * Fake session using an existent directory
 ** example windows
-The directory =Z:\\tmp= must exist ! 
+The directory =Z:\\tmp= must exist ! The dataset =blob= is created in this directory (and remain there)
 #+BEGIN_SRC sas :results none :session "Z:\\tmp"
 data blob;
 set sashelp.birthwgt(firstobs=1 obs=3);
 run;
 #+END_SRC
-
+and it can be used in another src block
 #+BEGIN_SRC sas :results output :session "Z:\\tmp" 
 proc print data=blob;
 run;
@@ -39,7 +39,7 @@ run;
 
 
 ** example unix/linux
-The directory =~/blobdir= must does not exist : error
+The directory =~/blobdir= must exist (if not an error will occur)
 #+BEGIN_SRC sas :results none :session "~/blobdir"
 data blob;
 set sashelp.birthwgt(firstobs=1 obs=3);
@@ -66,3 +66,5 @@ run;
 :   1       No          No         3      Asian        No        No        No         Yes
 :   2       No          No         2      White        No        No        No         No
 :   3       Yes         Yes        2      Native       No        Yes       No         No
+* Fake session
+It will be enough if no common options or title or symbols or macro are needed between blocks.

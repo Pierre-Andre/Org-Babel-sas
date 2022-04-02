@@ -1,10 +1,15 @@
+#+TITLE: :results value
+As no value exists in SAS, a =:sastab= argument is proposed to
+get the SAS dataset name in put it in  value result.
+
+Let us take one dataset
 #+BEGIN_SRC sas   :results none :session
 data blob;
 set sashelp.birthwgt;
 run;
 #+END_SRC
 
-
+and the value result can be retrieved.
 #+BEGIN_SRC sas :results value :session :sastab blib(firstobs=1 obs=3)
 data blob;
 set sashelp.birthwgt;
@@ -20,3 +25,6 @@ run;
 | No          | No      |        3 | No       | No    | No      | Yes         |
 | No          | No      |        2 | No       | No    | No      | No          |
 | Yes         | Yes     |        2 | No       | Yes   | No      | No          |
+
+As =:sastab= argument is passed to a =proc export= procedure all valid commands
+as filtering the rows are valid.

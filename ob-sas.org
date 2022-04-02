@@ -1,5 +1,5 @@
 #+STARTUP: show2levels
-* How to use this o rg file
+* How to use this org file
 This org file  can give several "src" files :
 - ob-sas.el : an elisp file
 - example_windows.emacs : an elisp ".emacs" example for windows
@@ -72,10 +72,7 @@ https://github.com/jwiegley/emacs-async
  (require 'cl-lib)
 
  (declare-function orgtbl-to-csv "org-table" (table params))
- (declare-function sasbis-shell-send-string "ext:sasbis"(string &optional process msg))
- (declare-function inferior-ess-send-string "ext:ess-inf" ())
- (declare-function ess-make-buffer-current "ext:ess-inf" ())
- (declare-function ess-eval-buffer "ext:ess-inf" (vis))
+ (declare-function sas-shell-send-string "ext:sas"(string &optional process msg))
  (declare-function org-number-sequence "org-compat" (from &optional to inc))
  #+END_SRC
 ** Custom Variables
@@ -117,8 +114,8 @@ https://github.com/jwiegley/emacs-async
  ;;;;;;;;;;;;;;; real session or not (user library)
  (defcustom org-babel-sas-realsession
    nil
-   "is the :session will use ESS to make a real session (non nil, unix only)
-    or use a user library (nil)"
+   "If not nil a real session (unix only) is used.
+If nil a user library will be used using -work flag"
    :group 'org-babel
    :type 'boolean)
  ;;;;;;;;;;;;;;; custom log file name (for :session "none")
@@ -226,7 +223,7 @@ https://github.com/jwiegley/emacs-async
 - If no :session exists -> return "none" (no user library will be used)
 - If :session "none" -> return "none" (idem)
 - If :session (ie :session key exists but its value is empty)
-  - if org-babel-sas-realsession=t -> start session via ESS
+  - if org-babel-sas-realsession=t -> start session via run-sas
   - if org-babel-sas-realsession=nil -> return temp directory path
 - If value of :session key is a buffer or a string equal to "*Sas*"
   -> session is already active nothing to do, return key value of :session
@@ -244,7 +241,7 @@ https://github.com/jwiegley/emacs-async
 *** buffer
 #+begin_src   elisp :tangle ob-sas.el
 (defvar org-babel-sas-buffers '((:default . "*Sas*")))
-(defvar sasbis-shell-buffer-name)
+(defvar sas-shell-buffer-name)
 (defun org-babel-sas-session-buffer (session)
   "Return the buffer associated with SESSION."
   (cdr (assoc session org-babel-sas-buffers)))
@@ -276,7 +273,7 @@ Session init : 2 cases
   is 'none', return 'none'
 - Else, * if realsession, create if needed comint buffer (and associated
   program) and return buffer
-        ,* else return as a string the user library directory
+        * else return as a string the user library directory
           (and create a temporary directory if SESSION is nil)"
   (if (or (string= session "none") (null (assq :session params)))
       "none"
@@ -296,10 +293,10 @@ Session init : 2 cases
       #+end_src
       SAS argument for run-sas : SAS comint (ie real session)
 #+begin_src elisp :tangle ob-sas.el
-(defun sasbis-shell-calculate-session-command ()
+(defun sas-shell-calculate-session-command ()
 "Calculate the string used to execute the inferior Sas process."
   (format "%s %s"
-          ;; `sasbis-shell-make-comint' expects to be able to
+          ;; `sas-shell-make-comint' expects to be able to
           ;; `split-string-and-unquote' the result of this function.
           (combine-and-quote-strings (list org-babel-sas-command))
           org-babel-sas-session-interpreter-args))
@@ -318,9 +315,9 @@ then create.  Return the initialized session."
 		  org-babel-sas-command)))
 	(unless sas-buffer
 	  (setq sas-buffer (org-babel-sas-with-earmuffs session)))
-	(let ((sasbis-shell-buffer-name
+	(let ((sas-shell-buffer-name
 	       (org-babel-sas-without-earmuffs sas-buffer)))
-	  (run-sasbis (sasbis-shell-calculate-session-command))
+	  (run-sas (sas-shell-calculate-session-command))
 	  (sleep-for 0 10))
       (setq org-babel-sas-buffers
 	    (cons (cons session sas-buffer)
@@ -430,7 +427,7 @@ then create.  Return the initialized session."
 ** Evaluation of the full-body
 *** main function of evaluation
  The evaluation process is separated in two cases: external subprocess
- or session (unixes only, with sasbis)
+ or session (unixes only, with sas)
  #+BEGIN_SRC elisp :tangle ob-sas.el
  (defun org-babel-sas-evaluate
    (session body result-type result-params sastab-tmp-file)
@@ -443,7 +440,7 @@ then create.  Return the initialized session."
       session body result-type result-params sastab-tmp-file)))
  #+END_SRC
 *** evaluation in an external process
- All evaluation case except real session with sasbis under unixes.
+ All evaluation case except real session with sas under unixes.
  #+BEGIN_SRC elisp :tangle ob-sas.el
 (defun org-babel-sas-external-shell-command (session tmp-file)
   "return string: the sas command to be run.
@@ -640,15 +637,17 @@ sauvegarde
  #+BEGIN_SRC elisp :tangle ob-sas.el
 (defun org-babel-sas--send-string (session body log output)
   "Pass BODY to the sas process in SESSION.
-Return Sas output/results if OUTPUT is non nil else return Sas log if LOG is non nil."
+Return Sas output/results if OUTPUT is non nil
+else return Sas log if LOG is non nil."
   (let ((output-string ""))
     (with-current-buffer session
       (comint-clear-buffer)
-      (let  ((org-babel-errorbuffer-name (format "Log-%s"(org-babel-sas-without-earmuffs session)))
+      (let  ((org-babel-errorbuffer-name
+              (format "Log-%s" (org-babel-sas-without-earmuffs session)))
              (body (concat body  org-babel-sas-eoe-indicator "\n")))
         (with-current-buffer org-babel-errorbuffer-name
           (comint-clear-buffer))
-        (sasbis-shell-send-string body)
+        (sas-shell-send-string body)
         (let ((time (current-time))
               (elapsed-time 0))
           (with-current-buffer org-babel-errorbuffer-name
@@ -671,7 +670,8 @@ Return Sas output/results if OUTPUT is non nil else return Sas log if LOG is non
   (buffer-substring-no-properties (point-min) (point-max)))
 
 (defun org-babel-sas-remove-eoe (string log)
-  "Remove from STRING the mark of end of execution ; mark is different if comint buffer is Sas Log output
+  "Remove from STRING the mark of end of execution.
+ Mark is different if comint buffer is Sas Log output
 (ie LOG non nil) or Sas output/results (ie LOG is nil)"
   (with-temp-buffer
     (insert string)
@@ -685,94 +685,6 @@ Return Sas output/results if OUTPUT is non nil else return Sas log if LOG is non
         (replace-match "" nil nil))
     (buffer-string)))
 #+END_SRC
-
-Using ess, SAS commands can be sent to sas (without closing it). This
- function submits the full-body and get results or output
- #+BEGIN_SRC elisp :tangle old-ob-sas.el
- (defun org-babel-sas-evaluate-session
-     (session body result-type result-params sastab-tmp-file)
-   "Evaluate BODY in SESSION.
- If RESULT-TYPE equals 'output then return standard output as a
- string.  If RESULT-TYPE equals 'value then return the value of the
- last statement in BODY, as elisp."
-   (cl-case result-type
-     (value
-      ;;     (let* ((allowed-args '(:sastab))
-      (let ((org-babel-sas-ess-process-name  (process-name (get-buffer-process session))))
-       (with-temp-buffer
-	 (insert body)
-	 (let ((ess-local-process-name
-		(process-name (get-buffer-process session)))
-	       (ess-eval-visibly-p nil))
-	   (ess-eval-buffer nil)))
-       (ess-send-string (get-process org-babel-sas-ess-process-name) org-babel-sas-eoe-indicator)
-       ;;    excursion for cut/paste results from output buffer
-       ;;   as output buffer is not the same as session buffer
-       ;; org-babel-comint-with-output cannot be used
-       (save-excursion
-      	 (set-buffer (format "*%s.lst*" org-babel-sas-ess-process-name))
-      	 (let* ((a 0) (b 0) (ancienpoint (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint))))
-      	  (while (< a org-babel-sas-timeout)
-      	    (setq b a)
-      	    (goto-char (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint)))
-      	    (setq a (re-search-forward org-babel-sas-eoe-output nil t))
-      	    (if a
-      		(progn (setq a org-babel-sas-timeout)
-      	 	       (goto-char (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint)))
-      	 	       (setq ancienpoint (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint)))
-		       ;; well well, this is embarassing but
-		       ;; as there's not history like in comint
-		       ;; the last point is saved in this global
-		       ;; alist variable (that will be used the
-		       ;; next time)
-      	 	       (setf (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint)) (point-max)))
-      	      (setq a (+ b 1)))
-      	    (sit-for 0.01)))))
-       ;; get export value from sastab-tmp-file
-       (org-babel-result-cond result-params
-	 (org-babel-chomp
-	  (with-current-buffer (find-file-noselect sastab-tmp-file)
-	    (buffer-string)
-	    )
-	  "\n")
-	 (org-babel-import-elisp-from-file sastab-tmp-file '(16))))
-     (output
-      ;; submit body through a temp buffer (in order to not go
-      ;; beyond the limit of 500 bytes)
-      ;; see
-      ;; https://stat.ethz.ch/pipermail/ess-help/2015-April/010518.html
-     (let ((org-babel-sas-ess-process-name  (process-name (get-buffer-process session))))
-       (with-temp-buffer
-	 (insert body)
-	 (let ((ess-local-process-name
-		(process-name (get-buffer-process session)))
-	       (ess-eval-visibly-p nil))
-	   (ess-eval-buffer nil)))
-       (ess-send-string (get-process org-babel-sas-ess-process-name) org-babel-sas-eoe-indicator)
-       ;;    excursion for cut/paste results from output buffer
-       ;;   as output buffer is not the same as session buffer
-       ;; org-babel-comint-with-output cannot be used
-       (save-excursion
-      	 (set-buffer (format "*%s.lst*" org-babel-sas-ess-process-name))
-      	 (let* ((a 0) (b 0) (ancienpoint (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint))))
-      	  (while (< a org-babel-sas-timeout)
-      	    (setq b a)
-      	    (goto-char (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint)))
-      	    (setq a (re-search-forward org-babel-sas-eoe-output nil t))
-      	    (if a
-      		(progn (setq a org-babel-sas-timeout)
-      	 	       (goto-char (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint)))
-      	 	       (setq ancienpoint (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint)))
-		       ;; well well, this is embarassing but
-		       ;; as there's not history like in comint
-		       ;; the last point is saved in this global
-		       ;; alist variable (that will be used the
-		       ;; next time)
-      	 	       (setf (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint)) (point-max)))
-      	      (setq a (+ b 1)))
-      	    (sit-for 0.01))
-       	  (org-babel-chomp (org-babel-sas-trim-end (org-babel-sas-trim-begin (org-babel-sas-trim-doubleline (org-babel-sas-trim-white (replace-regexp-in-string (concat "\\(\f\\)\\|\\(" org-babel-sas-boe-output "\\)\\|\\(" org-babel-sas-eoe-output "\\)") "" (buffer-substring ancienpoint (cdr (assoc (concat "session-" (if (stringp session) session (buffer-name session))) org-babel-sas-lepoint)))))))))))))))
- #+END_SRC
 ** end of file
  #+BEGIN_SRC elisp :tangle ob-sas.el
  (provide 'ob-sas)

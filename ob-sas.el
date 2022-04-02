@@ -41,10 +41,7 @@
  (require 'cl-lib)
 
  (declare-function orgtbl-to-csv "org-table" (table params))
- (declare-function sasbis-shell-send-string "ext:sasbis"(string &optional process msg))
- (declare-function inferior-ess-send-string "ext:ess-inf" ())
- (declare-function ess-make-buffer-current "ext:ess-inf" ())
- (declare-function ess-eval-buffer "ext:ess-inf" (vis))
+ (declare-function sas-shell-send-string "ext:sas"(string &optional process msg))
  (declare-function org-number-sequence "org-compat" (from &optional to inc))
 
  ;;;;;;;;;;;;;;;; could be useful to increase or decrease timeout ....
@@ -84,8 +81,8 @@
  ;;;;;;;;;;;;;;; real session or not (user library)
  (defcustom org-babel-sas-realsession
    nil
-   "is the :session will use ESS to make a real session (non nil, unix only)
-    or use a user library (nil)"
+   "If not nil a real session (unix only) is used.
+If nil a user library will be used using -work flag"
    :group 'org-babel
    :type 'boolean)
  ;;;;;;;;;;;;;;; custom log file name (for :session "none")
@@ -185,7 +182,7 @@
         (if graphics-file nil result))))
 
 (defvar org-babel-sas-buffers '((:default . "*Sas*")))
-(defvar sasbis-shell-buffer-name)
+(defvar sas-shell-buffer-name)
 (defun org-babel-sas-session-buffer (session)
   "Return the buffer associated with SESSION."
   (cdr (assoc session org-babel-sas-buffers)))
@@ -230,10 +227,10 @@
   (org-babel-sas-session-buffer
    (org-babel-sas-initiate-session-by-key session)))
 
-(defun sasbis-shell-calculate-session-command ()
+(defun sas-shell-calculate-session-command ()
 "Calculate the string used to execute the inferior Sas process."
   (format "%s %s"
-          ;; `sasbis-shell-make-comint' expects to be able to
+          ;; `sas-shell-make-comint' expects to be able to
           ;; `split-string-and-unquote' the result of this function.
           (combine-and-quote-strings (list org-babel-sas-command))
           org-babel-sas-session-interpreter-args))
@@ -250,9 +247,9 @@ then create.  Return the initialized session."
 		  org-babel-sas-command)))
 	(unless sas-buffer
 	  (setq sas-buffer (org-babel-sas-with-earmuffs session)))
-	(let ((sasbis-shell-buffer-name
+	(let ((sas-shell-buffer-name
 	       (org-babel-sas-without-earmuffs sas-buffer)))
-	  (run-sasbis (sasbis-shell-calculate-session-command))
+	  (run-sas (sas-shell-calculate-session-command))
 	  (sleep-for 0 10))
       (setq org-babel-sas-buffers
 	    (cons (cons session sas-buffer)
@@ -531,15 +528,17 @@ then create.  Return the initialized session."
 
 (defun org-babel-sas--send-string (session body log output)
   "Pass BODY to the sas process in SESSION.
-Return Sas output/results if OUTPUT is non nil else return Sas log if LOG is non nil."
+Return Sas output/results if OUTPUT is non nil
+else return Sas log if LOG is non nil."
   (let ((output-string ""))
     (with-current-buffer session
       (comint-clear-buffer)
-      (let  ((org-babel-errorbuffer-name (format "Log-%s"(org-babel-sas-without-earmuffs session)))
+      (let  ((org-babel-errorbuffer-name
+              (format "Log-%s" (org-babel-sas-without-earmuffs session)))
              (body (concat body  org-babel-sas-eoe-indicator "\n")))
         (with-current-buffer org-babel-errorbuffer-name
           (comint-clear-buffer))
-        (sasbis-shell-send-string body)
+        (sas-shell-send-string body)
         (let ((time (current-time))
               (elapsed-time 0))
           (with-current-buffer org-babel-errorbuffer-name
@@ -562,7 +561,8 @@ Return Sas output/results if OUTPUT is non nil else return Sas log if LOG is non
   (buffer-substring-no-properties (point-min) (point-max)))
 
 (defun org-babel-sas-remove-eoe (string log)
-  "Remove from STRING the mark of end of execution ; mark is different if comint buffer is Sas Log output
+  "Remove from STRING the mark of end of execution.
+ Mark is different if comint buffer is Sas Log output
 (ie LOG non nil) or Sas output/results (ie LOG is nil)"
   (with-temp-buffer
     (insert string)

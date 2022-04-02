@@ -1,4 +1,4 @@
-#+TITLE: ODS plots#+TITLE: ODS plots#+TITLE: ODS plots#+TITLE: ODS plots#+TITLE: ODS plots#+TITLE: ODS plots#+TITLE: ODS plots
+#+TITLE: ODS plots
 * one ODS plots
 several proc display ODS graphics. Export commands are differents from classical graphics thus the =:results= is adapted
 #+begin_src sas :file plotresiduals.pdf :results  odsgraphics file :session :exports both :comments org
