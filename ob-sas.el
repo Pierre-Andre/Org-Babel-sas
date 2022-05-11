@@ -51,7 +51,8 @@
    :type 'integer)
  ;;;;;;;;;;;;;;;; could be useful to tweak printing page size
  (defcustom org-babel-sas-print-options "options formdlim='' pagesize=max nocenter nodate;\n"
-   "general options used to have the maximum page size"
+   "general options used to print.
+  \"options formdlim='';\n\" could be used to suppress page break"
    :group 'org-babel
    :type 'string)
 
@@ -61,8 +62,9 @@
    "Command name to use for executing sas code."
    :group 'org-babel
    :type 'string)
-(defcustom org-babel-sas-session-interpreter-args "-nodms -nonews -stdio -nofullstimer -nodate -nocenter -terminal -pagesize max -nosyntaxcheck"
-  "Default arguments for the Sas interpreter."
+(defcustom org-babel-sas-session-interpreter-args "-nodms -nonews -stdio -nofullstimer -nodate -nocenter -terminal -pagesize max -nosyntaxcheck -cleanup"
+  "Default arguments for the Sas interpreter to make a real session using comint.
+\"-nodms -stdio\" is the important part."
   :type 'string
   :group 'org-babel)
  ;;;;;;;;;;;;;;; command line option to be used with SAS (for :session "none")
